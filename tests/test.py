@@ -2,8 +2,8 @@
 
 import sys
 
-from tests.mockServer import MockServer
-from tests.mockClient import MockClient, Client1, Client2
+from mockServer import MockServer
+from mockClient import MockClient, Client1, Client2
 
 
 def test():
