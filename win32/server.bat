@@ -1,4 +1,4 @@
 @echo off
 cd ..
-python -m src.hingechat.HingeChat --server --port 34484
+python -m src.hingechat.main --server --port 34484
 pause
