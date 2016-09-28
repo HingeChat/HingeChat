@@ -26,13 +26,10 @@ class QLoginWindow(QDialog):
         self.setWindowTitle("HingeChat")
         self.setWindowIcon(QIcon(qtUtils.getAbsoluteImagePath('icon.png')))
 
-        helpLink = QLinkLabel("Confused? Read the docs.", "https://cryptully.readthedocs.org/en/latest/", self)
-
         vbox = QVBoxLayout()
         vbox.addStretch(1)
         vbox.addWidget(QNickInputWidget('splash_icon.png', 200, self.connectClicked, nick, self))
         vbox.addStretch(1)
-        vbox.addWidget(helpLink, alignment=Qt.AlignRight)
 
         self.setLayout(vbox)
 
