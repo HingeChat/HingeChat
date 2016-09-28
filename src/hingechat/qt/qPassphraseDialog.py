@@ -11,7 +11,7 @@ from PyQt4.QtGui import QVBoxLayout
 
 import qtUtils
 
-from hinge.utils import constants
+from src.hinge.utils import constants
 
 class QPassphraseDialog(QDialog):
     def __init__(self, verify=False, showForgotButton=True):

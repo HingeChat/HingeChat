@@ -1,9 +1,9 @@
 import sys
 import time
 
-from hinge.network.client import Client
-from hinge.network.connectionManager import ConnectionManager
-from network import qtThreads
+from src.hinge.network.client import Client
+from src.hinge.network.connectionManager import ConnectionManager
+from src.hingechat.network import qtThreads
 
 from PyQt4.QtCore import pyqtSlot
 from PyQt4.QtCore import QTimer
@@ -19,10 +19,10 @@ from qLoginWindow import QLoginWindow
 import qtUtils
 from qWaitingDialog import QWaitingDialog
 
-from hinge.utils import constants
-from hinge.utils import errors
-from hinge.utils import exceptions
-from hinge.utils import utils
+from src.hinge.utils import constants
+from src.hinge.utils import errors
+from src.hinge.utils import exceptions
+from src.hinge.utils import utils
 
 
 class QtUI(QApplication):

@@ -14,8 +14,8 @@ from qNickInputWidget import QNickInputWidget
 from qLinkLabel import QLinkLabel
 import qtUtils
 
-from hinge.utils import constants
-from hinge.utils import utils
+from src.hinge.utils import constants
+from src.hinge.utils import utils
 
 class QLoginWindow(QDialog):
     def __init__(self, parent, nick=""):

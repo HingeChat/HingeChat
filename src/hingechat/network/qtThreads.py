@@ -1,9 +1,9 @@
-from hinge.network.client import Client
+from src.hinge.network.client import Client
 
 from PyQt4.QtCore import QThread
 from PyQt4.QtCore import pyqtSignal
 
-from hinge.utils import exceptions
+from src.hinge.utils import exceptions
 
 
 class QtServerConnectThread(QThread):

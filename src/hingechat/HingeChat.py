@@ -4,7 +4,7 @@ import sys
 import signal
 import argparse
 
-from hinge.utils import constants
+from src.hinge.utils import constants
 
 
 turnServer = None
@@ -17,7 +17,7 @@ def main():
     signal.signal(signal.SIGINT, signalHandler)
 
     if args.server:
-        from hinge.server.turnServer import TURNServer
+        from src.hinge.server.turnServer import TURNServer
         global turnServer
 
         turnServer = TURNServer(args.port)

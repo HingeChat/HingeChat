@@ -14,7 +14,7 @@ from PyQt4.QtGui import QVBoxLayout
 from qLine import QLine
 import qtUtils
 
-from hinge.utils import constants
+from src.hinge.utils import constants
 
 class QSMPInitiateDialog(QDialog):
     def __init__(self, parent=None):

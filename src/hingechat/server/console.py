@@ -1,4 +1,4 @@
-from hinge.server.console import Console
+from src.hinge.server.console import Console
 
 class ServerConsole(Console):
     def __init__(self):

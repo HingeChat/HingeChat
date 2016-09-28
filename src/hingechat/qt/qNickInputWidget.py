@@ -10,9 +10,9 @@ from PyQt4.QtGui import QWidget
 
 import qtUtils
 
-from hinge.utils import constants
-from hinge.utils import errors
-from hinge.utils import utils
+from src.hinge.utils import constants
+from src.hinge.utils import errors
+from src.hinge.utils import utils
 
 
 class QNickInputWidget(QWidget):

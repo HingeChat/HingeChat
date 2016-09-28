@@ -9,7 +9,7 @@ from PyQt4.QtGui  import QVBoxLayout
 import qtUtils
 from qLine import QLine
 
-from hinge.utils import constants
+from src.hinge.utils import constants
 
 
 class QWaitingDialog(QDialog):

@@ -16,7 +16,7 @@ from qConnectingWidget import QConnectingWidget
 from qHelpDialog import QHelpDialog
 from qNickInputWidget import QNickInputWidget
 
-from hinge.utils import errors
+from src.hinge.utils import errors
 
 
 class QChatTab(QWidget):

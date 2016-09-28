@@ -12,8 +12,8 @@ from PyQt4.QtGui import QWidget
 
 from qPassphraseDialog import QPassphraseDialog
 
-from hinge.utils import constants
-from hinge.utils import utils
+from src.hinge.utils import constants
+from src.hinge.utils import utils
 
 
 def centerWindow(window):

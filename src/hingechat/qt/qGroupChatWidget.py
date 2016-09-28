@@ -15,12 +15,13 @@ from PyQt4.QtGui import QWidget
 
 import qtUtils
 
-from hinge.utils import constants
-from hinge.utils import utils
-from hinge.utils import errors
+from src.hinge.utils import constants
+from src.hinge.utils import utils
+from src.hinge.utils import errors
 
 
-class QChatWidget(QWidget):
+class QGroupChatWidget(QWidget):
+
     def __init__(self, connectionManager, parent=None):
         QWidget.__init__(self, parent)
 
@@ -67,6 +68,50 @@ class QChatWidget(QWidget):
         self.typingTimer.setSingleShot(True)
         self.typingTimer.timeout.connect(self.stoppedTyping)
 
+    def isGroupPopup(self, justAccepted=False):
+        if justAccepted is False:
+            self.chatLog.setEnabled(False)
+            self.chatInput.setEnabled(False)
+            self.sendButton.setEnabled(False)
+            self.addUserText = QLabel("Enter a username to add a user to the group chat.", self)
+            self.addUserText.setGeometry(200, 20, 300, 100)
+            self.user = QLineEdit(self)
+            self.user.setGeometry(200, 120, 240, 20)
+            self.user.returnPressed.connect(self.addUser)
+            user = self.user
+            self.addUserButton = QPushButton('Add User', self)
+            self.addUserButton.setGeometry(250, 150, 150, 25)
+            self.addUserButton.clicked.connect(lambda: self.addUser(user))
+        else:
+            self.enable()
+
+
+    def addUser(self, user):
+        nick = str(user.text()).lower()
+
+        # Validate the given nick
+        nickStatus = utils.isValidNick(nick)
+        if nickStatus == errors.VALID_NICK:
+            #self.widgetStack.widget(1).setConnectingToNick(nick)
+            #self.widgetStack.setCurrentIndex(1)
+            self.connectionManager.openChat(nick, isGroup=True)
+        elif nickStatus == errors.INVALID_NICK_CONTENT:
+            QMessageBox.warning(self, errors.TITLE_INVALID_NICK, errors.INVALID_NICK_CONTENT)
+        elif nickStatus == errors.INVALID_NICK_LENGTH:
+            QMessageBox.warning(self, errors.TITLE_INVALID_NICK, errors.INVALID_NICK_LENGTH)
+        elif nickStatus == errors.INVALID_EMPTY_NICK:
+            QMessageBox.warning(self, errors.TITLE_EMPTY_NICK, errors.EMPTY_NICK)
+
+
+    def delAddUser(self):
+        if hasattr(self, 'addUserText'):
+            self.addUserText.hide()
+            self.user.hide()
+            self.addUserButton.hide()
+        self.chatLog.setEnabled(True)
+        self.chatInput.setEnabled(True)
+        self.sendButton.setEnabled(True)
+
 
     def chatInputTextChanged(self):
         # Check if the text changed was the text box being cleared to avoid sending an invalid typing status
@@ -106,7 +151,7 @@ class QChatWidget(QWidget):
         text = self.__linkify(text)
 
         # Add the message to the message queue to be sent
-        self.connectionManager.getClient(self.nick).sendChatMessage(text)
+        {key: value.sendChatMessage(text) for key, value in self.connectionManager.getGroupClients().iteritems()}
 
         # Clear the chat input
         self.wasCleared = True
@@ -116,16 +161,49 @@ class QChatWidget(QWidget):
 
 
     def sendTypingStatus(self, status):
-        self.connectionManager.getClient(self.nick).sendTypingMessage(status)
+        {key: value.sendTypingMessage(status) for key, value in self.connectionManager.getGroupClients().iteritems()}
 
 
     def showNowChattingMessage(self, nick):
         self.nick = nick
-        self.appendMessage("You are now securely chatting with " + self.nick + " :)",
+        self.addNickButton = QPushButton('Add', self)
+        self.addNickButton.setGeometry(584, 8, 31, 23)
+        self.addNickButton.clicked.connect(self.addNickScreen)
+        self.addNickButton.show()
+        self.appendMessage("You are now securely group chatting with " + self.nick + " :)",
                            constants.SERVICE, showTimestampAndNick=False)
 
         self.appendMessage("It's a good idea to verify the communcation is secure by selecting "
                            "\"authenticate buddy\" in the options menu.", constants.SERVICE, showTimestampAndNick=False)
+
+
+    def addNickScreen(self):
+        self.chatLog.setEnabled(False)
+        self.chatInput.setEnabled(False)
+        self.sendButton.setEnabled(False)
+        self.addNickButton.hide()
+        addUserText = QLabel("Enter a username to add a user to the group chat.", self)
+        addUserText.setGeometry(200, 20, 300, 100)
+        addUserText.show()
+        user = QLineEdit(self)
+        user.setGeometry(200, 120, 240, 20)
+        user.returnPressed.connect(self.addUser)
+        user.show()
+        addUserButton = QPushButton('Add User', self)
+        addUserButton.setGeometry(250, 150, 150, 25)
+        addUserButton.clicked.connect(lambda: self.addUser(user))
+        addUserButton.show()
+        cancel = QPushButton('Cancel', self)
+        cancel.setGeometry(298, 210, 51, 23)
+        cancel.clicked.connect(lambda: self.chatLog.setEnabled(True))
+        cancel.clicked.connect(lambda: self.chatInput.setEnabled(True))
+        cancel.clicked.connect(lambda: self.sendButton.setEnabled(True))
+        cancel.clicked.connect(addUserText.hide)
+        cancel.clicked.connect(user.hide)
+        cancel.clicked.connect(addUserButton.hide)
+        cancel.clicked.connect(self.addNickButton.show)
+        cancel.clicked.connect(cancel.hide)
+        cancel.show()
 
 
     def appendMessage(self, message, source, showTimestampAndNick=True):
