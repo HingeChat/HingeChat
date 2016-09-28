@@ -1,0 +1,3 @@
+import hingechat
+
+hingechat.main()
