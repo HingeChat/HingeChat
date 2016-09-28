@@ -11,8 +11,7 @@ class QHelpDialog(QMessageBox):
 
         self.setWindowTitle("Help")
 
-        helpText = QLabel("Questions? There's a whole bunch of info on the documentation page.", self)
-        helpLink = QLinkLabel("Read the docs.", "https://cryptully.readthedocs.org/en/latest/", self)
+        helpText = QLabel("Coming soon.", self)
 
         self.setIcon(QMessageBox.Question)
         self.setStandardButtons(QMessageBox.Ok)
@@ -20,7 +19,6 @@ class QHelpDialog(QMessageBox):
         vbox = QVBoxLayout()
         vbox.addStretch(1)
         vbox.addWidget(helpText)
-        vbox.addWidget(helpLink)
         vbox.addStretch(1)
 
         # Replace the default label with our own custom layout
