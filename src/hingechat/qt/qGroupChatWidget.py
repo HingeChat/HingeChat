@@ -99,7 +99,7 @@ class QGroupChatWidget(QWidget):
         if nickStatus == errors.VALID_NICK:
             #self.widgetStack.widget(1).setConnectingToNick(nick)
             #self.widgetStack.setCurrentIndex(1)
-            self.connectionManager.openChat(nick, isGroup=True)
+            self.connectionManager.openChat(nick, isGroup=True, anotherPerson=True)
         elif nickStatus == errors.INVALID_NICK_CONTENT:
             QMessageBox.warning(self, errors.TITLE_INVALID_NICK, errors.INVALID_NICK_CONTENT)
         elif nickStatus == errors.INVALID_NICK_LENGTH:
