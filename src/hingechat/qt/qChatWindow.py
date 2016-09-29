@@ -37,7 +37,7 @@ from src.hinge.utils import utils
 
 class QChatWindow(QMainWindow):
     newClientSignal = pyqtSignal(str, bool)
-    clientReadySignal = pyqtSignal(str, bool)
+    clientReadySignal = pyqtSignal(str, bool, str)
     smpRequestSignal = pyqtSignal(int, str, str, int)
     handleErrorSignal = pyqtSignal(str, int)
     sendMessageToTabSignal = pyqtSignal(str, str, str, bool)
@@ -134,14 +134,18 @@ class QChatWindow(QMainWindow):
         newTab.setFocus()
 
 
-    def clientReady(self, nick, isGroup=False):
+    def clientReady(self, nick, isGroup=False, originalNick=None):
         # Use a signal to call the client ready slot on the UI thread since
         # this function is called from a background thread
-        self.clientReadySignal.emit(nick, isGroup)
+        if originalNick is not None:
+            self.clientReadySignal.emit(nick, isGroup, originalNick)
+        else:
+            uselessStr = 'hey' # Stupid hack for this signal thing
+            self.clientReadySignal.emit(nick, isGroup, uselessStr)
 
 
-    @pyqtSlot(str, bool)
-    def clientReadySlot(self, nick, isGroup):
+    @pyqtSlot(str, bool, str)
+    def clientReadySlot(self, nick, isGroup, originalNick):
         nick = str(nick)
         if isGroup is False:
             tab, tabIndex = self.getTabByNick(nick)
