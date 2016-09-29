@@ -171,11 +171,16 @@ class QGroupChatWidget(QWidget):
 
     def showNowChattingMessage(self, nick):
         self.nick = nick
-        self.cancel.hide()
-        self.addUserButton.hide()
-        self.user.hide()
-        self.addUserText.hide()
-        self.addNickButton.show()
+        if hasattr(self, 'cancel'):
+            self.cancel.hide()
+        if hasattr(self, 'addUserButton'):
+            self.addUserButton.hide()
+        if hasattr(self, 'user'):
+            self.user.hide()
+        if hasattr(self, 'addUserText'):
+            self.addUserText.hide()
+        if hasattr(self, 'addNickButton'):
+            self.addNickButton.show()
         self.appendMessage("You are now securely group chatting with " + self.nick + " :)",
                            constants.SERVICE, showTimestampAndNick=False)
 

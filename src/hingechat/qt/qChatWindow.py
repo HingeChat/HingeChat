@@ -152,6 +152,8 @@ class QChatWindow(QMainWindow):
             if tabIndex == self.chatTabs.currentIndex():
                 self.setWindowTitle(nick)
         else:
+            if not self.getTabByText("Group chat"):
+                self.addNewGroupTab()
             tab, tabIndex = self.getTabByText("Group chat")
             self.chatTabs.setTabText(tabIndex, 'Group chat')
             tab.showNowChattingMessage()
