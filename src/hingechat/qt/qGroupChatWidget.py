@@ -70,18 +70,23 @@ class QGroupChatWidget(QWidget):
 
     def isGroupPopup(self, justAccepted=False):
         if justAccepted is False:
-            self.chatLog.setEnabled(False)
-            self.chatInput.setEnabled(False)
-            self.sendButton.setEnabled(False)
+            self.appendMessage("This is a blank group chat. Click the `Add` button to add someone.", constants.SERVICE, showTimestampAndNick=False)
             self.addUserText = QLabel("Enter a username to add a user to the group chat.", self)
             self.addUserText.setGeometry(200, 20, 300, 100)
+            self.addUserText.hide()
             self.user = QLineEdit(self)
             self.user.setGeometry(200, 120, 240, 20)
             self.user.returnPressed.connect(self.addUser)
             user = self.user
+            user.hide()
             self.addUserButton = QPushButton('Add User', self)
             self.addUserButton.setGeometry(250, 150, 150, 25)
             self.addUserButton.clicked.connect(lambda: self.addUser(user))
+            self.addUserButton.hide()
+            self.addNickButton = QPushButton('Add', self)
+            self.addNickButton.setGeometry(584, 8, 31, 23)
+            self.addNickButton.clicked.connect(self.addNickScreen)
+            self.addNickButton.show()
         else:
             self.enable()
 
@@ -166,9 +171,10 @@ class QGroupChatWidget(QWidget):
 
     def showNowChattingMessage(self, nick):
         self.nick = nick
-        self.addNickButton = QPushButton('Add', self)
-        self.addNickButton.setGeometry(584, 8, 31, 23)
-        self.addNickButton.clicked.connect(self.addNickScreen)
+        self.cancel.hide()
+        self.addUserButton.hide()
+        self.user.hide()
+        self.addUserText.hide()
         self.addNickButton.show()
         self.appendMessage("You are now securely group chatting with " + self.nick + " :)",
                            constants.SERVICE, showTimestampAndNick=False)
@@ -176,35 +182,33 @@ class QGroupChatWidget(QWidget):
         self.appendMessage("It's a good idea to verify the communcation is secure by selecting "
                            "\"authenticate buddy\" in the options menu.", constants.SERVICE, showTimestampAndNick=False)
 
-
     def addNickScreen(self):
         self.chatLog.setEnabled(False)
         self.chatInput.setEnabled(False)
         self.sendButton.setEnabled(False)
         self.addNickButton.hide()
-        addUserText = QLabel("Enter a username to add a user to the group chat.", self)
-        addUserText.setGeometry(200, 20, 300, 100)
-        addUserText.show()
-        user = QLineEdit(self)
-        user.setGeometry(200, 120, 240, 20)
-        user.returnPressed.connect(self.addUser)
-        user.show()
-        addUserButton = QPushButton('Add User', self)
-        addUserButton.setGeometry(250, 150, 150, 25)
-        addUserButton.clicked.connect(lambda: self.addUser(user))
-        addUserButton.show()
-        cancel = QPushButton('Cancel', self)
-        cancel.setGeometry(298, 210, 51, 23)
-        cancel.clicked.connect(lambda: self.chatLog.setEnabled(True))
-        cancel.clicked.connect(lambda: self.chatInput.setEnabled(True))
-        cancel.clicked.connect(lambda: self.sendButton.setEnabled(True))
-        cancel.clicked.connect(addUserText.hide)
-        cancel.clicked.connect(user.hide)
-        cancel.clicked.connect(addUserButton.hide)
-        cancel.clicked.connect(self.addNickButton.show)
-        cancel.clicked.connect(cancel.hide)
-        cancel.show()
-
+        self.addUserText = QLabel("Enter a username to add a user to the group chat.", self)
+        self.addUserText.setGeometry(200, 20, 300, 100)
+        self.addUserText.show()
+        self.user = QLineEdit(self)
+        self.user.setGeometry(200, 120, 240, 20)
+        self.user.returnPressed.connect(self.addUser)
+        self.user.show()
+        self.addUserButton = QPushButton('Add User', self)
+        self.addUserButton.setGeometry(250, 150, 150, 25)
+        self.addUserButton.clicked.connect(lambda: self.addUser(self.user))
+        self.addUserButton.show()
+        self.cancel = QPushButton('Cancel', self)
+        self.cancel.setGeometry(298, 210, 51, 23)
+        self.cancel.clicked.connect(lambda: self.chatLog.setEnabled(True))
+        self.cancel.clicked.connect(lambda: self.chatInput.setEnabled(True))
+        self.cancel.clicked.connect(lambda: self.sendButton.setEnabled(True))
+        self.cancel.clicked.connect(self.addUserText.hide)
+        self.cancel.clicked.connect(self.user.hide)
+        self.cancel.clicked.connect(self.addUserButton.hide)
+        self.cancel.clicked.connect(self.addNickButton.show)
+        self.cancel.clicked.connect(self.cancel.hide)
+        self.cancel.show()
 
     def appendMessage(self, message, source, showTimestampAndNick=True):
         color = self.__getColor(source)

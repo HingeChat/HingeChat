@@ -53,7 +53,6 @@ class QChatTab(QWidget):
         layout.addWidget(self.widgetStack)
         self.setLayout(layout)
 
-
     def connectClicked(self, nick):
         # Check that the nick isn't already connected
         if self.chatWindow.isNickInTabs(nick):
@@ -65,7 +64,6 @@ class QChatTab(QWidget):
         self.widgetStack.setCurrentIndex(1)
         self.chatWindow.connectionManager.openChat(self.nick)
 
-
     def showNowChattingMessage(self):
         if self.isGroup:
             self.widgetStack.widget(3).delAddUser()
@@ -73,7 +71,6 @@ class QChatTab(QWidget):
         else:
             self.widgetStack.setCurrentIndex(2)
             self.widgetStack.widget(2).showNowChattingMessage(self.nick)
-
 
     def appendMessage(self, message, source):
         if self.isGroup:
