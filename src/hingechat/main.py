@@ -5,6 +5,7 @@ import signal
 import argparse
 
 from src.hinge.utils import constants
+from src.hingechat.server.console import ServerConsole
 
 
 turnServer = None
@@ -20,6 +21,7 @@ def main():
         from src.hinge.server.turnServer import TURNServer
         global turnServer
 
+        ServerConsole(0, 0).start() # We won't be using the quiet concept, so it's safe to have this here.
         turnServer = TURNServer(args.port)
         turnServer.start()
     else:

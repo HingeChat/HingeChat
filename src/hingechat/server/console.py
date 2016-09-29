@@ -1,8 +1,11 @@
 from src.hinge.server.console import Console
+from src.hinge.server import turnServer
 
 class ServerConsole(Console):
-    def __init__(self):
-        Console.__init__(self)
+    def __init__(self, nickMap, ipMap):
+        Console.__init__(self, nickMap, ipMap)
+        self.nickMap = turnServer.nickMap
+        self.ipMap = turnServer.ipMap
 
         self.commands = {
             'list': {
@@ -31,36 +34,36 @@ class ServerConsole(Console):
             },
         }
 
-
     def run(self):
         while True:
-            input = raw_input(">> ").split()
-
-            if len(input) == 0:
-                continue
-
-            command = input[0]
-            arg = input[1] if len(input) == 2 else None
-
             try:
+                input = raw_input(">> ").split()
+
+                if len(input) == 0:
+                    continue
+
+                command = input[0]
+                arg = input[1] if len(input) == 2 else None
+
                 self.commands[command]['callback'](arg)
+            except EOFError:
+                self.stop()
             except KeyError:
                 print "Unrecognized command"
-
 
     def list(self, arg):
         print "Registered nicks"
         print "================"
-        for nick, client in nickMap.iteritems():
-            print nick + " - " + str(client.sock)
 
+        for nick, client in self.nickMap.iteritems():
+            print nick + " - " + str(client.sock)
 
     def zombies(self, arg):
         print "Zombie Connections"
         print "=================="
-        for addr, client in ipMap.iteritems():
-            print addr
 
+        for addr, client in self.ipMap.iteritems():
+            print addr
 
     def kick(self, nick):
         if not nick:
@@ -68,12 +71,11 @@ class ServerConsole(Console):
             return
 
         try:
-            client = nickMap[nick]
+            client = self.nickMap[nick]
             client.kick()
             print "%s kicked from server" % nick
         except KeyError:
             print "%s is not a registered nick" % nick
-
 
     def kill(self, ip):
         if not ip:
@@ -81,16 +83,14 @@ class ServerConsole(Console):
             return
 
         try:
-            client = ipMap[ip]
+            client = self.ipMap[ip]
             client.kick()
             print "%s killed" % ip
         except KeyError:
             print "%s is not a zombie" % ip
 
-
-    def stop(self, arg):
+    def stop(self, arg=None):
         os.kill(os.getpid(), signal.SIGINT)
-
 
     def help(self, arg):
         delimeter = '\n\t'
