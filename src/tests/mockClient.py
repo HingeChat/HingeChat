@@ -4,8 +4,8 @@ import traceback
 
 from threading import Thread
 
-from network.connectionManager import ConnectionManager
-from utils import constants
+from src.hinge.network.connectionManager import ConnectionManager
+from src.hinge.utils import constants
 from waitingMock import WaitingMock
 
 

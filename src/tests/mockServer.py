@@ -1,7 +1,7 @@
 from threading import Thread
 
-from server.turnServer import TURNServer
-from utils import constants
+from src.hinge.server.turnServer import TURNServer
+from src.hinge.utils import constants
 
 
 class MockServer(Thread):
