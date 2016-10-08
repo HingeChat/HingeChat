@@ -173,7 +173,6 @@ class QGroupChatWidget(QWidget):
         if nick is '':
             for key in self.connectionManager.groupClients:
                 nick = key
-        print nick
         self.nick = nick
         if hasattr(self, 'cancel'):
             self.cancel.hide()
