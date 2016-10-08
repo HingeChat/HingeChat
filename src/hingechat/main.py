@@ -5,7 +5,7 @@ import signal
 import argparse
 
 from src.hinge.utils import constants
-from src.hingechat.server.console import ServerConsole
+from src.hingechat.server.Console import ServerConsole
 
 
 turnServer = None
@@ -18,7 +18,7 @@ def main():
     signal.signal(signal.SIGINT, signalHandler)
 
     if args.server:
-        from src.hinge.server.turnServer import TURNServer
+        from src.hinge.server.TURNServer import TURNServer
         global turnServer
 
         ServerConsole(0, 0).start() # We won't be using the quiet concept, so it's safe to have this here.

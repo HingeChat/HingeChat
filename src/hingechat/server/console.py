@@ -1,11 +1,11 @@
-from src.hinge.server.console import Console
-from src.hinge.server import turnServer
+from src.hinge.server.Console import Console
+from src.hinge.server import TURNServer
 
 class ServerConsole(Console):
     def __init__(self, nickMap, ipMap):
         Console.__init__(self, nickMap, ipMap)
-        self.nickMap = turnServer.nickMap
-        self.ipMap = turnServer.ipMap
+        self.nickMap = TURNServer.nickMap
+        self.ipMap = TURNServer.ipMap
 
         self.commands = {
             'list': {

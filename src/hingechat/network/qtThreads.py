@@ -1,4 +1,4 @@
-from src.hinge.network.client import Client
+from src.hinge.network.Client import Client
 
 from PyQt4.QtCore import QThread
 from PyQt4.QtCore import pyqtSignal

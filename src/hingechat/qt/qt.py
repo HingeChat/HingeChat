@@ -1,8 +1,8 @@
 import sys
 import time
 
-from src.hinge.network.client import Client
-from src.hinge.network.connectionManager import ConnectionManager
+from src.hinge.network.Client import Client
+from src.hinge.network.ConnectionManager import ConnectionManager
 from src.hingechat.network import qtThreads
 
 from PyQt4.QtCore import pyqtSlot
