@@ -8,6 +8,9 @@ src/hinge
 # C extensions
 *.so
 
+# OS X
+.DS_Store
+
 # Packages
 *.egg
 *.egg-info
