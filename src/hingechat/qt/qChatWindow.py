@@ -37,7 +37,7 @@ from src.hinge.utils import utils
 
 class QChatWindow(QMainWindow):
     newClientSignal = pyqtSignal(str, bool)
-    clientReadySignal = pyqtSignal(str, bool, bool, str)
+    clientReadySignal = pyqtSignal(str, bool)
     smpRequestSignal = pyqtSignal(int, str, str, int)
     handleErrorSignal = pyqtSignal(str, int)
     sendMessageToTabSignal = pyqtSignal(str, str, str, bool)
@@ -134,18 +134,14 @@ class QChatWindow(QMainWindow):
         newTab.setFocus()
 
 
-    def clientReady(self, nick, anotherPerson, isGroup=False, originalNick=None):
+    def clientReady(self, nick, isGroup=False):
         # Use a signal to call the client ready slot on the UI thread since
         # this function is called from a background thread
-        if originalNick is not None:
-            self.clientReadySignal.emit(nick, anotherPerson, isGroup, originalNick)
-        else:
-            uselessStr = 'hey' # Stupid hack for this signal thing
-            self.clientReadySignal.emit(nick, anotherPerson, isGroup, uselessStr)
+            self.clientReadySignal.emit(nick, isGroup)
 
 
-    @pyqtSlot(str, bool, bool, str)
-    def clientReadySlot(self, nick, anotherPerson, isGroup, originalNick):
+    @pyqtSlot(str, bool)
+    def clientReadySlot(self, nick, isGroup):
         nick = str(nick)
         if isGroup is False:
             tab, tabIndex = self.getTabByNick(nick)
@@ -156,14 +152,11 @@ class QChatWindow(QMainWindow):
             if tabIndex == self.chatTabs.currentIndex():
                 self.setWindowTitle(nick)
         else:
-            if anotherPerson:
-                print 'anotherPerson'
-            else:
-                if not self.getTabByText("Group chat"):
-                    self.addNewGroupTab()
-                tab, tabIndex = self.getTabByText("Group chat")
-                self.chatTabs.setTabText(tabIndex, 'Group chat')
-                tab.showNowChattingMessage()
+            if not self.getTabByText("Group chat"):
+                self.addNewGroupTab()
+            tab, tabIndex = self.getTabByText("Group chat")
+            self.chatTabs.setTabText(tabIndex, 'Group chat')
+            tab.showNowChattingMessage()
 
 
     def smpRequest(self, type, nick, question='', errno=0):

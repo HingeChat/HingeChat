@@ -69,6 +69,10 @@ class QGroupChatWidget(QWidget):
         self.typingTimer.timeout.connect(self.stoppedTyping)
 
     def isGroupPopup(self, justAccepted=False):
+        self.addNickButton = QPushButton('Add', self)
+        self.addNickButton.setGeometry(584, 8, 31, 23)
+        self.addNickButton.clicked.connect(self.addNickScreen)
+        self.addNickButton.show()
         if justAccepted is False:
             self.appendMessage("This is a blank group chat. Click the `Add` button to add someone.", constants.SERVICE, showTimestampAndNick=False)
             self.addUserText = QLabel("Enter a username to add a user to the group chat.", self)
@@ -83,10 +87,6 @@ class QGroupChatWidget(QWidget):
             self.addUserButton.setGeometry(250, 150, 150, 25)
             self.addUserButton.clicked.connect(lambda: self.addUser(user))
             self.addUserButton.hide()
-            self.addNickButton = QPushButton('Add', self)
-            self.addNickButton.setGeometry(584, 8, 31, 23)
-            self.addNickButton.clicked.connect(self.addNickScreen)
-            self.addNickButton.show()
         else:
             self.enable()
 
@@ -99,7 +99,7 @@ class QGroupChatWidget(QWidget):
         if nickStatus == errors.VALID_NICK:
             #self.widgetStack.widget(1).setConnectingToNick(nick)
             #self.widgetStack.setCurrentIndex(1)
-            self.connectionManager.openChat(nick, isGroup=True, anotherPerson=True)
+            self.connectionManager.openChat(nick, isGroup=True)
         elif nickStatus == errors.INVALID_NICK_CONTENT:
             QMessageBox.warning(self, errors.TITLE_INVALID_NICK, errors.INVALID_NICK_CONTENT)
         elif nickStatus == errors.INVALID_NICK_LENGTH:
@@ -170,6 +170,10 @@ class QGroupChatWidget(QWidget):
 
 
     def showNowChattingMessage(self, nick):
+        if nick is '':
+            for key in self.connectionManager.groupClients:
+                nick = key
+        print nick
         self.nick = nick
         if hasattr(self, 'cancel'):
             self.cancel.hide()
