@@ -172,7 +172,7 @@ class QGroupChatWidget(QWidget):
 
     def showNowChattingMessage(self, nick):
         if nick is '':
-            for key in self.connectionManager.groupClients:
+            for key in self.connectionManager.clients:
                 nick = key
         self.nick = nick
         if hasattr(self, 'cancel'):
@@ -193,7 +193,7 @@ class QGroupChatWidget(QWidget):
             self.appendMessage("It's a good idea to verify the communcation is secure by selecting "
                             "\"authenticate buddy\" in the options menu.", constants.SERVICE, showTimestampAndNick=False)
         else:
-            self.sendMessage("")
+            self.appendMessage(self.nick + " has been added to the group chat", constants.SERVICE, showTimestampAndNick=False)
 
     def addNickScreen(self):
         self.chatLog.setEnabled(False)

@@ -183,11 +183,13 @@ class QChatWindow(QMainWindow):
         if nick == '':
             self.__disableAllTabs()
         else:
-            try:
+            try: # Let's try to get the tab by the nick, assuming it's not a group chat:
                 tab = self.getTabByNick(nick)[0]
                 tab.resetOrDisable()
-            except:
-                self.__disableAllTabs()
+            except: # Oh, then it's obviously a group chat:
+                tab = self.getTabByText("Group chat") # Hack
+                if hasattr(tab, 'resetOrDisable'): # Another hack...
+                    tab.resetOrDisable()
 
         if errno == errors.ERR_CONNECTION_ENDED:
             QMessageBox.warning(self, errors.TITLE_CONNECTION_ENDED, errors.CONNECTION_ENDED % (nick))
