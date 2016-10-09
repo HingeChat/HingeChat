@@ -97,9 +97,12 @@ class QGroupChatWidget(QWidget):
         # Validate the given nick
         nickStatus = utils.isValidNick(nick)
         if nickStatus == errors.VALID_NICK:
-            #self.widgetStack.widget(1).setConnectingToNick(nick)
-            #self.widgetStack.setCurrentIndex(1)
-            self.connectionManager.openChat(nick, isGroup=True)
+            # self.widgetStack.widget(1).setConnectingToNick(nick)
+            # self.widgetStack.setCurrentIndex(1)
+            if hasattr(self, 'nick'):
+                self.connectionManager.openChat(nick, self.nick, isGroup=True)
+            else:
+                self.connectionManager.openChat(nick, isGroup=True)
         elif nickStatus == errors.INVALID_NICK_CONTENT:
             QMessageBox.warning(self, errors.TITLE_INVALID_NICK, errors.INVALID_NICK_CONTENT)
         elif nickStatus == errors.INVALID_NICK_LENGTH:
@@ -164,10 +167,8 @@ class QGroupChatWidget(QWidget):
 
         self.appendMessage(text, constants.SENDER)
 
-
     def sendTypingStatus(self, status):
         {key: value.sendTypingMessage(status) for key, value in self.connectionManager.getGroupClients().iteritems()}
-
 
     def showNowChattingMessage(self, nick):
         if nick is '':
@@ -184,11 +185,15 @@ class QGroupChatWidget(QWidget):
             self.addUserText.hide()
         if hasattr(self, 'addNickButton'):
             self.addNickButton.show()
-        self.appendMessage("You are now securely group chatting with " + self.nick + " :)",
-                           constants.SERVICE, showTimestampAndNick=False)
+        text = self.chatLog.toPlainText()
+        if 'You are now securely group chatting with' not in text: # Incredibly ugly hack to avoid spam
+            self.appendMessage("You are now securely group chatting with " + self.nick + " :)",
+                            constants.SERVICE, showTimestampAndNick=False)
 
-        self.appendMessage("It's a good idea to verify the communcation is secure by selecting "
-                           "\"authenticate buddy\" in the options menu.", constants.SERVICE, showTimestampAndNick=False)
+            self.appendMessage("It's a good idea to verify the communcation is secure by selecting "
+                            "\"authenticate buddy\" in the options menu.", constants.SERVICE, showTimestampAndNick=False)
+        else:
+            self.sendMessage("")
 
     def addNickScreen(self):
         self.chatLog.setEnabled(False)
@@ -241,7 +246,6 @@ class QGroupChatWidget(QWidget):
         if shouldScroll:
             scrollbar.setValue(scrollbar.maximum())
 
-
     def __linkify(self, text):
         matches = self.urlRegex.findall(text)
 
@@ -249,7 +253,6 @@ class QGroupChatWidget(QWidget):
             text = text.replace(match[0], '<a href="%s">%s</a>' % (match[0], match[0]))
 
         return text
-
 
     def __getColor(self, source):
         if source == constants.SENDER:
@@ -268,11 +271,9 @@ class QGroupChatWidget(QWidget):
             else:
                 return '#FFFFFF'
 
-
     def disable(self):
         self.isDisabled = True
         self.chatInput.setReadOnly(True)
-
 
     def enable(self):
         self.isDisabled = False

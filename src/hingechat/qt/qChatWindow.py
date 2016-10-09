@@ -34,9 +34,8 @@ from src.hinge.utils import constants
 from src.hinge.utils import errors
 from src.hinge.utils import utils
 
-
 class QChatWindow(QMainWindow):
-    newClientSignal = pyqtSignal(str, bool)
+    newClientSignal = pyqtSignal(str, bool, str)
     clientReadySignal = pyqtSignal(str, bool)
     smpRequestSignal = pyqtSignal(int, str, str, int)
     handleErrorSignal = pyqtSignal(str, int)
@@ -85,14 +84,15 @@ class QChatWindow(QMainWindow):
         # Add an initial tab once connected to the server
         self.addNewTab()
 
-    def newClient(self, nick, isGroup=False):
+    def newClient(self, nick, isGroup=False, otherNicks=''):
         # This function is called from a bg thread. Send a signal to get on the UI thread
-        self.newClientSignal.emit(nick, isGroup)
+        self.newClientSignal.emit(nick, isGroup, otherNicks)
 
-    @pyqtSlot(str, bool)
-    def newClientSlot(self, nick, isGroup):
+    @pyqtSlot(str, bool, str)
+    def newClientSlot(self, nick, isGroup, otherNicks):
         nick = str(nick)
         isGroup = bool(isGroup)
+        otherNicks = str(otherNicks)
 
         # Show a system notifcation of the new client if not the current window
         if not self.isActiveWindow():
@@ -117,8 +117,7 @@ class QChatWindow(QMainWindow):
             else:
                 self.addNewTab(nick)
 
-        self.connectionManager.newClientAccepted(nick, isGroup)
-
+        self.connectionManager.newClientAccepted(nick, isGroup, otherNicks)
 
     def addNewTab(self, nick=None):
         newTab = QChatTab(self, nick)
@@ -126,19 +125,16 @@ class QChatWindow(QMainWindow):
         self.chatTabs.setCurrentWidget(newTab)
         newTab.setFocus()
 
-
     def addNewGroupTab(self, justAccepted=False):
         newTab = QChatTab(self, justAccepted=justAccepted, isGroup=True)
         self.chatTabs.addTab(newTab, "Group chat")
         self.chatTabs.setCurrentWidget(newTab)
         newTab.setFocus()
 
-
     def clientReady(self, nick, isGroup=False):
         # Use a signal to call the client ready slot on the UI thread since
         # this function is called from a background thread
-            self.clientReadySignal.emit(nick, isGroup)
-
+        self.clientReadySignal.emit(nick, isGroup)
 
     @pyqtSlot(str, bool)
     def clientReadySlot(self, nick, isGroup):
@@ -158,10 +154,8 @@ class QChatWindow(QMainWindow):
             self.chatTabs.setTabText(tabIndex, 'Group chat')
             tab.showNowChattingMessage()
 
-
     def smpRequest(self, type, nick, question='', errno=0):
         self.smpRequestSignal.emit(type, nick, question, errno)
-
 
     @pyqtSlot(int, str, str, int)
     def smpRequestSlot(self, type, nick, question='', errno=0):
@@ -179,10 +173,8 @@ class QChatWindow(QMainWindow):
             elif errno == errors.ERR_SMP_MATCH_FAILED:
                 QMessageBox.critical(self, errors.TITLE_SMP_MATCH_FAILED, errors.SMP_MATCH_FAILED)
 
-
     def handleError(self, nick, errno):
         self.handleErrorSignal.emit(nick, errno)
-
 
     @pyqtSlot(str, int)
     def handleErrorSlot(self, nick, errno):
@@ -201,10 +193,12 @@ class QChatWindow(QMainWindow):
             QMessageBox.warning(self, errors.TITLE_CONNECTION_ENDED, errors.CONNECTION_ENDED % (nick))
         elif errno == errors.ERR_NICK_NOT_FOUND:
             QMessageBox.information(self, errors.TITLE_NICK_NOT_FOUND, errors.NICK_NOT_FOUND % (nick))
-            tab.nick = None
+            if hasattr(tab, 'nick'):
+                tab.nick = None
         elif errno == errors.ERR_CONNECTION_REJECTED:
             QMessageBox.warning(self, errors.TITLE_CONNECTION_REJECTED, errors.CONNECTION_REJECTED % (nick))
-            tab.nick = None
+            if hasattr(tab, 'nick'):
+                tab.nick = None
         elif errno == errors.ERR_BAD_HANDSHAKE:
             QMessageBox.warning(self, errors.TITLE_PROTOCOL_ERROR, errors.PROTOCOL_ERROR % (nick))
         elif errno == errors.ERR_CLIENT_EXISTS:
@@ -238,16 +232,13 @@ class QChatWindow(QMainWindow):
         else:
             QMessageBox.warning(self, errors.TITLE_UNKNOWN_ERROR, errors.UNKNOWN_ERROR % (nick))
 
-
     def __disableAllTabs(self):
         for i in xrange(0, self.chatTabs.count()):
             curTab = self.chatTabs.widget(i)
             curTab.resetOrDisable()
 
-
     def postMessage(self, command, sourceNick, payload, isGroup=False):
         self.sendMessageToTabSignal.emit(command, sourceNick, payload, isGroup)
-
 
     @pyqtSlot(str, str, str, bool)
     def sendMessageToTab(self, command, sourceNick, payload, isGroup):
@@ -287,7 +278,6 @@ class QChatWindow(QMainWindow):
                chatLogScrollbar.value() != chatLogScrollbar.maximum():
                 qtUtils.showDesktopNotification(self.systemTrayIcon, sourceNick, payload)
 
-
     @pyqtSlot(int)
     def tabChanged(self, index):
         # Reset the unread count for the tab when it's switched to
@@ -306,7 +296,6 @@ class QChatWindow(QMainWindow):
             tab.unreadCount = 0
             self.chatTabs.setTabText(index, tab.nick)
 
-
     @pyqtSlot(int)
     def closeTab(self, index):
         tab = self.chatTabs.widget(index)
@@ -318,7 +307,6 @@ class QChatWindow(QMainWindow):
         if self.chatTabs.count() == 0:
             self.addNewTab()
 
-
     def getTabByText(self, tab):
         for i in xrange(0, self.chatTabs.count()):
             tabText = self.chatTabs.tabText(i)
@@ -328,7 +316,6 @@ class QChatWindow(QMainWindow):
                 return (curTab, whichTab)
         return None
 
-
     def getTabByNick(self, nick):
         for i in xrange(0, self.chatTabs.count()):
             curTab = self.chatTabs.widget(i)
@@ -336,14 +323,12 @@ class QChatWindow(QMainWindow):
                 return (curTab, i)
         return None
 
-
     def isNickInTabs(self, nick):
         for i in xrange(0, self.chatTabs.count()):
             curTab = self.chatTabs.widget(i)
             if curTab.nick == nick:
                 return True
         return False
-
 
     def __setMenubar(self):
         newChatIcon = QIcon(qtUtils.getAbsoluteImagePath('new_chat.png'))
@@ -395,7 +380,6 @@ class QChatWindow(QMainWindow):
         toolbar.addWidget(exitButton)
         self.addToolBar(Qt.LeftToolBarArea, toolbar)
 
-
     def __showAuthDialog(self):
         client = self.connectionManager.getClient(self.chatTabs.currentWidget().nick)
 
@@ -411,10 +395,8 @@ class QChatWindow(QMainWindow):
         if clickedButton == constants.BUTTON_OKAY:
             client.initiateSMP(str(question), str(answer))
 
-
     def __showHelpDialog(self):
         QHelpDialog(self).show()
-
 
     def __exit(self):
         if QMessageBox.Yes == QMessageBox.question(self, "Confirm Exit", "Are you sure you want to exit?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No):
