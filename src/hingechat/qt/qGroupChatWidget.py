@@ -90,7 +90,6 @@ class QGroupChatWidget(QWidget):
         else:
             self.enable()
 
-
     def addUser(self, user):
         nick = str(user.text()).lower()
 
@@ -100,7 +99,7 @@ class QGroupChatWidget(QWidget):
             # self.widgetStack.widget(1).setConnectingToNick(nick)
             # self.widgetStack.setCurrentIndex(1)
             if hasattr(self, 'nick'):
-                self.connectionManager.openChat(nick, self.nick, isGroup=True)
+                self.connectionManager.openChat(nick, self.nick, isGroup=True, sender=True)
             else:
                 self.connectionManager.openChat(nick, isGroup=True)
         elif nickStatus == errors.INVALID_NICK_CONTENT:
@@ -110,7 +109,6 @@ class QGroupChatWidget(QWidget):
         elif nickStatus == errors.INVALID_EMPTY_NICK:
             QMessageBox.warning(self, errors.TITLE_EMPTY_NICK, errors.EMPTY_NICK)
 
-
     def delAddUser(self):
         if hasattr(self, 'addUserText'):
             self.addUserText.hide()
@@ -119,7 +117,6 @@ class QGroupChatWidget(QWidget):
         self.chatLog.setEnabled(True)
         self.chatInput.setEnabled(True)
         self.sendButton.setEnabled(True)
-
 
     def chatInputTextChanged(self):
         # Check if the text changed was the text box being cleared to avoid sending an invalid typing status
@@ -134,14 +131,12 @@ class QGroupChatWidget(QWidget):
             self.typingTimer.start(constants.TYPING_TIMEOUT)
             self.sendTypingStatus(constants.TYPING_START)
 
-
     def stoppedTyping(self):
         self.typingTimer.stop()
         if str(self.chatInput.toPlainText()) == '':
             self.sendTypingStatus(constants.TYPING_STOP_WITHOUT_TEXT)
         else:
             self.sendTypingStatus(constants.TYPING_STOP_WITH_TEXT)
-
 
     def sendMessage(self):
         if self.isDisabled:
