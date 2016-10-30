@@ -25,7 +25,6 @@ from PyQt4.QtGui import QWidget
 
 from qChatTab import QChatTab
 from qAcceptDialog import QAcceptDialog
-from qHelpDialog import QHelpDialog
 from qSMPInitiateDialog import QSMPInitiateDialog
 from qSMPRespondDialog import QSMPRespondDialog
 import qtUtils
@@ -334,24 +333,20 @@ class QChatWindow(QMainWindow):
 
     def __setMenubar(self):
         newChatIcon = QIcon(qtUtils.getAbsoluteImagePath('new_chat.png'))
-        helpIcon    = QIcon(qtUtils.getAbsoluteImagePath('help.png'))
         exitIcon    = QIcon(qtUtils.getAbsoluteImagePath('exit.png'))
         menuIcon    = QIcon(qtUtils.getAbsoluteImagePath('menu.png'))
 
         newChatAction  = QAction(newChatIcon, '&New chat', self)
         newGroupChatAction = QAction(newChatIcon, '&New group chat', self)
         authChatAction = QAction(newChatIcon, '&Authenticate chat', self)
-        helpAction     = QAction(helpIcon, 'Show &help', self)
         exitAction     = QAction(exitIcon, '&Exit', self)
 
         newChatAction.triggered.connect(lambda: self.addNewTab())
         newGroupChatAction.triggered.connect(lambda: self.addNewGroupTab())
         authChatAction.triggered.connect(self.__showAuthDialog)
-        helpAction.triggered.connect(self.__showHelpDialog)
         exitAction.triggered.connect(self.__exit)
 
         newChatAction.setShortcut('Ctrl+N')
-        helpAction.setShortcut('Ctrl+H')
         exitAction.setShortcut('Ctrl+Q')
 
         optionsMenu = QMenu()
@@ -359,7 +354,6 @@ class QChatWindow(QMainWindow):
         optionsMenu.addAction(newChatAction)
         optionsMenu.addAction(newGroupChatAction)
         optionsMenu.addAction(authChatAction)
-        optionsMenu.addAction(helpAction)
         optionsMenu.addAction(exitAction)
 
         optionsMenuButton = QToolButton()
@@ -396,9 +390,6 @@ class QChatWindow(QMainWindow):
 
         if clickedButton == constants.BUTTON_OKAY:
             client.initiateSMP(str(question), str(answer))
-
-    def __showHelpDialog(self):
-        QHelpDialog(self).show()
 
     def __exit(self):
         if QMessageBox.Yes == QMessageBox.question(self, "Confirm Exit", "Are you sure you want to exit?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No):

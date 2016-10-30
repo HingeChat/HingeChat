@@ -13,7 +13,6 @@ import qtUtils
 from qChatWidget import QChatWidget
 from qGroupChatWidget import QGroupChatWidget
 from qConnectingWidget import QConnectingWidget
-from qHelpDialog import QHelpDialog
 from qNickInputWidget import QNickInputWidget
 
 from src.hinge.utils import errors
