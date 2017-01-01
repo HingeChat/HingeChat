@@ -99,7 +99,8 @@ class QGroupChatWidget(QWidget):
             # self.widgetStack.widget(1).setConnectingToNick(nick)
             # self.widgetStack.setCurrentIndex(1)
             if hasattr(self, 'nick'):
-                self.connectionManager.openChat(nick, self.nick, isGroup=True, sender=True)
+                nicks = [self.nick]
+                self.connectionManager.openChat(nick, nicks, isGroup=True, sender=True)
             else:
                 self.connectionManager.openChat(nick, isGroup=True)
         elif nickStatus == errors.INVALID_NICK_CONTENT:

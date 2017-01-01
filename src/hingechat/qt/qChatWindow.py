@@ -34,7 +34,7 @@ from src.hinge.utils import errors
 from src.hinge.utils import utils
 
 class QChatWindow(QMainWindow):
-    newClientSignal = pyqtSignal(str, bool, str)
+    newClientSignal = pyqtSignal(str, bool, list)
     clientReadySignal = pyqtSignal(str, bool)
     smpRequestSignal = pyqtSignal(int, str, str, int)
     handleErrorSignal = pyqtSignal(str, int)
@@ -83,15 +83,15 @@ class QChatWindow(QMainWindow):
         # Add an initial tab once connected to the server
         self.addNewTab()
 
-    def newClient(self, nick, isGroup=False, otherNicks=''):
+    def newClient(self, nick, isGroup=False, nicks=[]):
         # This function is called from a bg thread. Send a signal to get on the UI thread
-        self.newClientSignal.emit(nick, isGroup, otherNicks)
+        self.newClientSignal.emit(nick, isGroup, nicks)
 
-    @pyqtSlot(str, bool, str)
-    def newClientSlot(self, nick, isGroup, otherNicks):
+    @pyqtSlot(str, bool, list)
+    def newClientSlot(self, nick, isGroup, nicks):
         nick = str(nick)
         isGroup = bool(isGroup)
-        otherNicks = str(otherNicks)
+        nicks = list(nicks)
 
         # Show a system notifcation of the new client if not the current window
         if not self.isActiveWindow():
@@ -116,7 +116,7 @@ class QChatWindow(QMainWindow):
             else:
                 self.addNewTab(nick)
 
-        self.connectionManager.newClientAccepted(nick, isGroup, otherNicks)
+        self.connectionManager.newClientAccepted(nick, isGroup, nicks)
 
     def addNewTab(self, nick=None):
         newTab = QChatTab(self, nick)
