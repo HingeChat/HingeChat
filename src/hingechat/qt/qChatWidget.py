@@ -19,12 +19,12 @@ from src.hinge.utils import constants
 from src.hinge.utils import utils
 from src.hinge.utils import errors
 
-
 class QChatWidget(QWidget):
-    def __init__(self, connectionManager, parent=None):
+    def __init__(self, connectionManager, nick, parent=None):
         QWidget.__init__(self, parent)
 
         self.connectionManager = connectionManager
+        self.nick = nick
         self.isDisabled = False
         self.wasCleared = False
 
@@ -67,7 +67,6 @@ class QChatWidget(QWidget):
         self.typingTimer.setSingleShot(True)
         self.typingTimer.timeout.connect(self.stoppedTyping)
 
-
     def chatInputTextChanged(self):
         # Check if the text changed was the text box being cleared to avoid sending an invalid typing status
         if self.wasCleared:
@@ -81,14 +80,12 @@ class QChatWidget(QWidget):
             self.typingTimer.start(constants.TYPING_TIMEOUT)
             self.sendTypingStatus(constants.TYPING_START)
 
-
     def stoppedTyping(self):
         self.typingTimer.stop()
         if str(self.chatInput.toPlainText()) == '':
             self.sendTypingStatus(constants.TYPING_STOP_WITHOUT_TEXT)
         else:
             self.sendTypingStatus(constants.TYPING_STOP_WITH_TEXT)
-
 
     def sendMessage(self):
         if self.isDisabled:
@@ -114,14 +111,12 @@ class QChatWidget(QWidget):
 
         self.appendMessage(text, constants.SENDER)
 
-
     def sendTypingStatus(self, status):
         self.connectionManager.getClient(self.nick).sendTypingMessage(status)
 
-
     def showNowChattingMessage(self, nick):
-        self.nick = nick
-        self.appendMessage("You are now securely chatting with " + self.nick + " :)",
+        self.otherNick = nick
+        self.appendMessage("You are now securely chatting with " + self.otherNick + " :)",
                            constants.SERVICE, showTimestampAndNick=False)
 
         self.appendMessage("It's a good idea to verify the communcation is secure by selecting "
@@ -138,13 +133,8 @@ class QChatWidget(QWidget):
         # Validate the given nick
         nickStatus = utils.isValidNick(nick)
         if nickStatus == errors.VALID_NICK:
-            #self.widgetStack.widget(1).setConnectingToNick(nick)
-            #self.widgetStack.setCurrentIndex(1)
-            if hasattr(self, 'nick'):
-                nicks = [self.nick]
-                self.connectionManager.openChat(nick, nicks, isGroup=True, sender=True)
-            else:
-                self.connectionManager.openChat(nick, isGroup=True)
+            nicks = [nick, self.otherNick]
+            self.connectionManager.openGroupChat(self.nick, nicks)
         elif nickStatus == errors.INVALID_NICK_CONTENT:
             QMessageBox.warning(self, errors.TITLE_INVALID_NICK, errors.INVALID_NICK_CONTENT)
         elif nickStatus == errors.INVALID_NICK_LENGTH:

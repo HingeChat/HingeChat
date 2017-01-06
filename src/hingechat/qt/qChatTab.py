@@ -31,8 +31,8 @@ class QChatTab(QWidget):
         self.widgetStack = QStackedWidget(self)
         self.widgetStack.addWidget(QNickInputWidget('new_chat.png', 150, self.connectClicked, parent=self))
         self.widgetStack.addWidget(QConnectingWidget(parent=self))
-        self.widgetStack.addWidget(QChatWidget(self.chatWindow.connectionManager, parent=self))
-        self.widgetStack.addWidget(QGroupChatWidget(self.chatWindow.connectionManager, parent=self))
+        self.widgetStack.addWidget(QChatWidget(self.chatWindow.connectionManager, nick=nick, parent=self))
+        self.widgetStack.addWidget(QGroupChatWidget(self.chatWindow.connectionManager, nick=nick, parent=self))
 
         # Skip the chat layout if the nick was given denoting an incoming connection
         if self.nick is None or self.nick == '' and isGroup is False:

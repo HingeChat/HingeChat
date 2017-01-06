@@ -22,10 +22,11 @@ from src.hinge.utils import errors
 
 class QGroupChatWidget(QWidget):
 
-    def __init__(self, connectionManager, parent=None):
+    def __init__(self, connectionManager, nick, parent=None):
         QWidget.__init__(self, parent)
 
         self.connectionManager = connectionManager
+        self.nick = nick
         self.isDisabled = False
         self.wasCleared = False
 
@@ -96,13 +97,12 @@ class QGroupChatWidget(QWidget):
         # Validate the given nick
         nickStatus = utils.isValidNick(nick)
         if nickStatus == errors.VALID_NICK:
-            # self.widgetStack.widget(1).setConnectingToNick(nick)
-            # self.widgetStack.setCurrentIndex(1)
-            if hasattr(self, 'nick'):
-                nicks = [self.nick]
-                self.connectionManager.openChat(nick, nicks, isGroup=True, sender=True)
+            if hasattr(self, 'otherNick'):
+                nicks = [nick, self.otherNick]
+                self.connectionManager.openGroupChat(self.nick, nicks)
             else:
-                self.connectionManager.openChat(nick, isGroup=True)
+                nicks = [nick]
+                self.connectionManager.openGroupChat(self.nick, nicks)
         elif nickStatus == errors.INVALID_NICK_CONTENT:
             QMessageBox.warning(self, errors.TITLE_INVALID_NICK, errors.INVALID_NICK_CONTENT)
         elif nickStatus == errors.INVALID_NICK_LENGTH:
@@ -170,7 +170,7 @@ class QGroupChatWidget(QWidget):
         if nick is '':
             for key in self.connectionManager.clients:
                 nick = key
-        self.nick = nick
+        self.otherNick = nick
         if hasattr(self, 'cancel'):
             self.cancel.hide()
         if hasattr(self, 'addUserButton'):
@@ -182,14 +182,9 @@ class QGroupChatWidget(QWidget):
         if hasattr(self, 'addNickButton'):
             self.addNickButton.show()
         text = self.chatLog.toPlainText()
-        if 'You are now securely group chatting with' not in text: # Incredibly ugly hack to avoid spam
-            self.appendMessage("You are now securely group chatting with " + self.nick + " :)",
-                            constants.SERVICE, showTimestampAndNick=False)
-
-            self.appendMessage("It's a good idea to verify the communcation is secure by selecting "
-                            "\"authenticate buddy\" in the options menu.", constants.SERVICE, showTimestampAndNick=False)
-        else:
-            self.appendMessage(self.nick + " has been added to the group chat", constants.SERVICE, showTimestampAndNick=False)
+        self.appendMessage(self.otherNick + " has been added to the group chat", constants.SERVICE, showTimestampAndNick=False)
+        self.appendMessage("It's a good idea to verify the communcation is secure by selecting "
+                        "\"authenticate buddy\" in the options menu.", constants.SERVICE, showTimestampAndNick=False)
 
     def addNickScreen(self):
         self.chatLog.setEnabled(False)
