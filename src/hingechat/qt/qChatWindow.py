@@ -59,7 +59,19 @@ class QChatWindow(QMainWindow):
         self.chatTabs.currentChanged.connect(self.tabChanged)
 
         self.statusBar = self.statusBar()
+
         self.systemTrayIcon = QSystemTrayIcon(self)
+        self.systemTrayIcon.setIcon(QIcon(qtUtils.getAbsoluteImagePath('icon.ico', True)))
+        self.systemTrayIcon.setToolTip("HingeChat")
+
+        self.systemTrayMenu = QMenu()
+
+        self.exitAct = QAction("Exit", self, shortcut="Ctrl+Q", statusTip="Exit", triggered=self.exit)
+        self.exitAct.setIcon(QIcon(qtUtils.getAbsoluteImagePath('exit.png')))
+
+        self.systemTrayMenu.addAction(self.exitAct)
+
+        self.systemTrayIcon.setContextMenu(self.systemTrayMenu)
         self.systemTrayIcon.setVisible(True)
 
         self.__setMenubar()
@@ -78,6 +90,9 @@ class QChatWindow(QMainWindow):
         # Title and icon
         self.setWindowTitle("HingeChat")
         self.setWindowIcon(QIcon(qtUtils.getAbsoluteImagePath('icon.png')))
+
+    def exit(self):
+        qtUtils.exitApp(self.systemTrayIcon)
 
     def connectedToServer(self):
         # Add an initial tab once connected to the server
@@ -393,4 +408,4 @@ class QChatWindow(QMainWindow):
 
     def __exit(self):
         if QMessageBox.Yes == QMessageBox.question(self, "Confirm Exit", "Are you sure you want to exit?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No):
-            qtUtils.exitApp()
+            self.exit()

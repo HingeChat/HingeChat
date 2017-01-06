@@ -74,7 +74,7 @@ class QtUI(QApplication):
         # and killing the thread
         time.sleep(.25)
 
-        self.quit()
+        self.chatWindow.exit()
 
 
     def restart(self):
