@@ -103,7 +103,7 @@ class QChatWidget(QWidget):
         text = self.__linkify(text)
 
         # Add the message to the message queue to be sent
-        self.connectionManager.getClient(self.nick).sendChatMessage(text)
+        self.connectionManager.getClient(self.otherNick).sendChatMessage(text)
 
         # Clear the chat input
         self.wasCleared = True
@@ -112,7 +112,7 @@ class QChatWidget(QWidget):
         self.appendMessage(text, constants.SENDER)
 
     def sendTypingStatus(self, status):
-        self.connectionManager.getClient(self.nick).sendTypingMessage(status)
+        self.connectionManager.getClient(self.otherNick).sendTypingMessage(status)
 
     def showNowChattingMessage(self, nick):
         self.otherNick = nick
@@ -175,7 +175,7 @@ class QChatWidget(QWidget):
 
         if showTimestampAndNick:
             timestamp = '<font color="' + color + '">(' + utils.getTimestamp() + ') <strong>' + \
-                        (self.connectionManager.nick if source == constants.SENDER else self.nick) + \
+                        (self.connectionManager.nick if source == constants.SENDER else self.otherNick) + \
                         ':</strong></font> '
         else:
             timestamp = ''
