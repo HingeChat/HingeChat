@@ -2,32 +2,32 @@ import os
 import signal
 import sys
 
-from PyQt4.QtCore import pyqtSignal
-from PyQt4.QtCore import pyqtSlot
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QFontMetrics
-from PyQt4.QtGui import QAction
-from PyQt4.QtGui import QIcon
-from PyQt4.QtGui import QInputDialog
-from PyQt4.QtGui import QLabel
-from PyQt4.QtGui import QMainWindow
-from PyQt4.QtGui import QMenu
-from PyQt4.QtGui import QMessageBox
-from PyQt4.QtGui import QPushButton
-from PyQt4.QtGui import QSplitter
-from PyQt4.QtGui import QSystemTrayIcon
-from PyQt4.QtGui import QTabWidget
-from PyQt4.QtGui import QTextEdit
-from PyQt4.QtGui import QToolBar
-from PyQt4.QtGui import QToolButton
-from PyQt4.QtGui import QVBoxLayout
-from PyQt4.QtGui import QWidget
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFontMetrics
+from PyQt5.QtWidgets import QAction
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QInputDialog
+from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMenu
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QSplitter
+from PyQt5.QtWidgets import QSystemTrayIcon
+from PyQt5.QtWidgets import QTabWidget
+from PyQt5.QtWidgets import QTextEdit
+from PyQt5.QtWidgets import QToolBar
+from PyQt5.QtWidgets import QToolButton
+from PyQt5.QtWidgets import QVBoxLayout
+from PyQt5.QtWidgets import QWidget
 
-from qChatTab import QChatTab
-from qAcceptDialog import QAcceptDialog
-from qSMPInitiateDialog import QSMPInitiateDialog
-from qSMPRespondDialog import QSMPRespondDialog
-import qtUtils
+from .qChatTab import QChatTab
+from .qAcceptDialog import QAcceptDialog
+from .qSMPInitiateDialog import QSMPInitiateDialog
+from .qSMPRespondDialog import QSMPRespondDialog
+from . import qtUtils
 
 from src.hinge.utils import constants
 from src.hinge.utils import errors
@@ -249,7 +249,7 @@ class QChatWindow(QMainWindow):
             QMessageBox.warning(self, errors.TITLE_UNKNOWN_ERROR, errors.UNKNOWN_ERROR % (nick))
 
     def __disableAllTabs(self):
-        for i in xrange(0, self.chatTabs.count()):
+        for i in range(0, self.chatTabs.count()):
             curTab = self.chatTabs.widget(i)
             curTab.resetOrDisable()
 
@@ -275,7 +275,7 @@ class QChatWindow(QMainWindow):
                 elif payload == constants.TYPING_STOP_WITH_TEXT:
                     self.statusBar.showMessage("%s has entered text" % sourceNick)
         elif command == constants.COMMAND_SMP_0:
-            print('got request for smp in tab %d' % (tabIndex))
+            print(('got request for smp in tab %d' % (tabIndex)))
         else:
             tab.appendMessage(payload, constants.RECEIVER)
 
@@ -324,7 +324,7 @@ class QChatWindow(QMainWindow):
             self.addNewTab()
 
     def getTabByText(self, tab):
-        for i in xrange(0, self.chatTabs.count()):
+        for i in range(0, self.chatTabs.count()):
             tabText = self.chatTabs.tabText(i)
             if tabText == tab:
                 whichTab = i
@@ -333,14 +333,14 @@ class QChatWindow(QMainWindow):
         return None
 
     def getTabByNick(self, nick):
-        for i in xrange(0, self.chatTabs.count()):
+        for i in range(0, self.chatTabs.count()):
             curTab = self.chatTabs.widget(i)
             if curTab.nick == nick:
                 return (curTab, i)
         return None
 
     def isNickInTabs(self, nick):
-        for i in xrange(0, self.chatTabs.count()):
+        for i in range(0, self.chatTabs.count()):
             curTab = self.chatTabs.widget(i)
             if curTab.nick == nick:
                 return True

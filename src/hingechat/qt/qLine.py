@@ -1,4 +1,4 @@
-from PyQt4.QtGui import QFrame
+from PyQt5.QtWidgets import QFrame
 
 class QLine(QFrame):
     def __init__(self, parent=None):

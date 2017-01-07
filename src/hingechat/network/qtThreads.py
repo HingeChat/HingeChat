@@ -1,7 +1,7 @@
 from src.hinge.network.Client import Client
 
-from PyQt4.QtCore import QThread
-from PyQt4.QtCore import pyqtSignal
+from PyQt5.QtCore import QThread
+from PyQt5.QtCore import pyqtSignal
 
 from src.hinge.utils import exceptions
 

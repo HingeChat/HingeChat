@@ -1,6 +1,6 @@
-from PyQt4.QtGui import QIcon
-from PyQt4.QtGui import QMessageBox
-from PyQt4.QtGui import QPushButton
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QPushButton
 
 class QAcceptDialog(QMessageBox):
     def __init__(self, parent, hostname):
@@ -19,15 +19,13 @@ class QAcceptDialog(QMessageBox):
 
         self.buttonClicked.connect(self.gotAnswer)
 
-
     def gotAnswer(self, button):
-    	if button is self.acceptButton:
-        	self.accepted = True
+        if button is self.acceptButton:
+            self.accepted = True
         else:
-        	self.accepted = False
+            self.accepted = False
 
         self.close()
-
 
     @staticmethod
     def getAnswer(parent, hostname):

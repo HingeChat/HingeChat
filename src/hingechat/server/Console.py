@@ -37,62 +37,62 @@ class ServerConsole(Console):
     def run(self):
         while True:
             try:
-                input = raw_input(">> ").split()
+                cInput = input(">> ").split()
 
-                if len(input) == 0:
+                if len(cInput) == 0:
                     continue
 
-                command = input[0]
-                arg = input[1] if len(input) == 2 else None
+                command = cInput[0]
+                arg = cInput[1] if len(cInput) == 2 else None
 
                 self.commands[command]['callback'](arg)
             except EOFError:
                 self.stop()
             except KeyError:
-                print "Unrecognized command"
+                print("Unrecognized command")
 
     def list(self, arg):
-        print "Registered nicks"
-        print "================"
+        print("Registered nicks")
+        print("================")
 
-        for nick, client in self.nickMap.iteritems():
-            print nick + " - " + str(client.sock)
+        for nick, client in self.nickMap.items():
+            print(nick + " - " + str(client.sock))
 
     def zombies(self, arg):
-        print "Zombie Connections"
-        print "=================="
+        print("Zombie Connections")
+        print("==================")
 
-        for addr, client in self.ipMap.iteritems():
-            print addr
+        for addr, client in self.ipMap.items():
+            print(addr)
 
     def kick(self, nick):
         if not nick:
-            print "Kick command requires a nick"
+            print("Kick command requires a nick")
             return
 
         try:
             client = self.nickMap[nick]
             client.kick()
-            print "%s kicked from server" % nick
+            print("%s kicked from server" % nick)
         except KeyError:
-            print "%s is not a registered nick" % nick
+            print("%s is not a registered nick" % nick)
 
     def kill(self, ip):
         if not ip:
-            print "Kill command requires an IP"
+            print("Kill command requires an IP")
             return
 
         try:
             client = self.ipMap[ip]
             client.kick()
-            print "%s killed" % ip
+            print("%s killed" % ip)
         except KeyError:
-            print "%s is not a zombie" % ip
+            print("%s is not a zombie" % ip)
 
     def stop(self, arg=None):
         os.kill(os.getpid(), signal.SIGINT)
 
     def help(self, arg):
         delimeter = '\n\t'
-        helpMessages = map(lambda (_, command): command['help'], self.commands.iteritems())
-        print "Available commands:%s%s" % (delimeter, delimeter.join(helpMessages))
+        helpMessages = [__command[1]['help'] for __command in iter(self.commands.items())]
+        print("Available commands:%s%s" % (delimeter, delimeter.join(helpMessages)))

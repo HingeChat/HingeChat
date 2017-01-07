@@ -1,14 +1,14 @@
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QHBoxLayout
-from PyQt4.QtGui import QLabel
-from PyQt4.QtGui import QLineEdit
-from PyQt4.QtGui import QMessageBox
-from PyQt4.QtGui import QPixmap
-from PyQt4.QtGui import QPushButton
-from PyQt4.QtGui import QVBoxLayout
-from PyQt4.QtGui import QWidget
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QHBoxLayout
+from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QPushButton
+from PyQt5.QtWidgets import QVBoxLayout
+from PyQt5.QtWidgets import QWidget
 
-import qtUtils
+from . import qtUtils
 
 from src.hinge.utils import constants
 from src.hinge.utils import errors

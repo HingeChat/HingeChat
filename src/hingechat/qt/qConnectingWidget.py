@@ -1,10 +1,10 @@
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QHBoxLayout
-from PyQt4.QtGui import QLabel
-from PyQt4.QtGui import QMovie
-from PyQt4.QtGui import QWidget
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QHBoxLayout
+from PyQt5.QtWidgets import QLabel
+from PyQt5.QtGui import QMovie
+from PyQt5.QtWidgets import QWidget
 
-import qtUtils
+from . import qtUtils
 
 
 class QConnectingWidget(QWidget):

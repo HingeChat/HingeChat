@@ -1,15 +1,13 @@
 import os
 import signal
 
-from PyQt4.QtCore import QCoreApplication
-from PyQt4.QtGui import QDesktopWidget
-from PyQt4.QtGui import QIcon
-from PyQt4.QtGui import QInputDialog
-from PyQt4.QtGui import QMessageBox
-from PyQt4.QtGui import QPixmap
-from PyQt4.QtGui import QWidget
-
-from qPassphraseDialog import QPassphraseDialog
+from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtWidgets import QDesktopWidget
+from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QInputDialog
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QWidget
 
 from src.hinge.utils import constants
 from src.hinge.utils import utils

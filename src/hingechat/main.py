@@ -25,7 +25,7 @@ def main():
         turnServer = TURNServer(args.port)
         turnServer.start()
     else:
-        from qt.qt import QtUI
+        from .qt.qt import QtUI
         global qtUI
 
         qtUI = QtUI(sys.argv, args.nick, args.turn, args.port)
@@ -44,7 +44,7 @@ def parse_cmdline_args():
 
     # Check the port range
     if args.port <= 0 or args.port > 65536:
-        print "The port must be between 1 and 65536 inclusive."
+        print("The port must be between 1 and 65536 inclusive.")
         sys.exit(1)
 
     return args

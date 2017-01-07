@@ -1,13 +1,13 @@
-from PyQt4.QtCore import pyqtSignal
-from PyQt4.QtGui  import QDialog
-from PyQt4.QtGui  import QFrame
-from PyQt4.QtGui  import QHBoxLayout
-from PyQt4.QtGui  import QLabel
-from PyQt4.QtGui  import QMovie
-from PyQt4.QtGui  import QVBoxLayout
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets  import QDialog
+from PyQt5.QtWidgets  import QFrame
+from PyQt5.QtWidgets  import QHBoxLayout
+from PyQt5.QtWidgets  import QLabel
+from PyQt5.QtGui import QMovie
+from PyQt5.QtWidgets  import QVBoxLayout
 
-import qtUtils
-from qLine import QLine
+from . import qtUtils
+from .qLine import QLine
 
 from src.hinge.utils import constants
 

@@ -2,18 +2,18 @@ import os
 import signal
 import sys
 
-from PyQt4.QtCore import Qt
-from PyQt4.QtGui import QAction
-from PyQt4.QtGui import QHBoxLayout
-from PyQt4.QtGui import QMessageBox
-from PyQt4.QtGui import QStackedWidget
-from PyQt4.QtGui import QWidget
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QAction
+from PyQt5.QtWidgets import QHBoxLayout
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QStackedWidget
+from PyQt5.QtWidgets import QWidget
 
-import qtUtils
-from qChatWidget import QChatWidget
-from qGroupChatWidget import QGroupChatWidget
-from qConnectingWidget import QConnectingWidget
-from qNickInputWidget import QNickInputWidget
+from . import qtUtils
+from .qChatWidget import QChatWidget
+from .qGroupChatWidget import QGroupChatWidget
+from .qConnectingWidget import QConnectingWidget
+from .qNickInputWidget import QNickInputWidget
 
 from src.hinge.utils import errors
 

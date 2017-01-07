@@ -5,19 +5,19 @@ from src.hinge.network.Client import Client
 from src.hinge.network.ConnectionManager import ConnectionManager
 from src.hingechat.network import qtThreads
 
-from PyQt4.QtCore import pyqtSlot
-from PyQt4.QtCore import QTimer
-from PyQt4.QtGui import QApplication
-from PyQt4.QtGui import QInputDialog
-from PyQt4.QtGui import QMessageBox
-from PyQt4.QtGui import QPalette
-from PyQt4.QtGui import QWidget
+from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QInputDialog
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtGui import QPalette
+from PyQt5.QtWidgets import QWidget
 
-from qAcceptDialog import QAcceptDialog
-from qChatWindow import QChatWindow
-from qLoginWindow import QLoginWindow
-import qtUtils
-from qWaitingDialog import QWaitingDialog
+from .qAcceptDialog import QAcceptDialog
+from .qChatWindow import QChatWindow
+from .qLoginWindow import QLoginWindow
+from . import qtUtils
+from .qWaitingDialog import QWaitingDialog
 
 from src.hinge.utils import constants
 from src.hinge.utils import errors
@@ -111,7 +111,7 @@ class QtUI(QApplication):
     @pyqtSlot(str)
     def __connectFailure(self, errorMessage):
         # Show a more friendly error if the connection was refused (errno 111)
-        if errorMessage.contains('Errno 111'):
+        if 'Errno 111' in errorMessage:
             errorMessage = "Unable to contact the server. Try again later."
 
         QMessageBox.critical(self.chatWindow, errors.FAILED_TO_CONNECT, errorMessage)
