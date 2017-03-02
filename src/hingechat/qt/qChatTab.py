@@ -19,6 +19,7 @@ from src.hinge.utils import errors
 
 
 class QChatTab(QWidget):
+    
     def __init__(self, chatWindow, nick='', justAccepted=False, isGroup=False):
         QWidget.__init__(self)
 
@@ -35,9 +36,9 @@ class QChatTab(QWidget):
         self.widgetStack.addWidget(QGroupChatWidget(self.chatWindow.connectionManager, nick=nick, parent=self))
 
         # Skip the chat layout if the nick was given denoting an incoming connection
-        if self.nick is None or self.nick == '' and isGroup is False:
+        if ((self.nick is None) or (self.nick == '')) and (isGroup is False):
             self.widgetStack.setCurrentIndex(0)
-        elif self.nick != '' or self.nick is not None or isGroup is True:
+        elif (self.nick != '') or (self.nick is not None) or (isGroup is True):
             if isGroup is True:
                 if self.justAccepted is False:
                     self.widgetStack.setCurrentIndex(3)

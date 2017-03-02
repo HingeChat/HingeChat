@@ -1,4 +1,4 @@
 #!/bin/sh
 
 cd ..
-python -m src.hingechat.main --server --port 34484
+python3 -m src.hingechat.main --server --port 34484

@@ -33,7 +33,9 @@ from src.hinge.utils import constants
 from src.hinge.utils import errors
 from src.hinge.utils import utils
 
+
 class QChatWindow(QMainWindow):
+    
     newClientSignal = pyqtSignal(str, bool, list)
     clientReadySignal = pyqtSignal(str, bool)
     smpRequestSignal = pyqtSignal(int, str, str, int)
@@ -127,7 +129,7 @@ class QChatWindow(QMainWindow):
             self.getTabByNick(nick)[0].enable()
         else:
             if isGroup:
-                self.addNewGroupTab(True)
+                self.addNewGroupTab(nick, True)
             else:
                 self.addNewTab(nick)
 
@@ -139,8 +141,8 @@ class QChatWindow(QMainWindow):
         self.chatTabs.setCurrentWidget(newTab)
         newTab.setFocus()
 
-    def addNewGroupTab(self, justAccepted=False):
-        newTab = QChatTab(self, justAccepted=justAccepted, isGroup=True)
+    def addNewGroupTab(self, nick=None, justAccepted=False):
+        newTab = QChatTab(self, nick=nick, justAccepted=justAccepted, isGroup=True)
         self.chatTabs.addTab(newTab, "Group chat")
         self.chatTabs.setCurrentWidget(newTab)
         newTab.setFocus()
@@ -163,7 +165,7 @@ class QChatWindow(QMainWindow):
                 self.setWindowTitle(nick)
         else:
             if not self.getTabByText("Group chat"):
-                self.addNewGroupTab()
+                self.addNewGroupTab(nick)
             tab, tabIndex = self.getTabByText("Group chat")
             self.chatTabs.setTabText(tabIndex, 'Group chat')
             tab.showNowChattingMessage()
@@ -357,7 +359,7 @@ class QChatWindow(QMainWindow):
         exitAction     = QAction(exitIcon, '&Exit', self)
 
         newChatAction.triggered.connect(lambda: self.addNewTab())
-        newGroupChatAction.triggered.connect(lambda: self.addNewGroupTab())
+        newGroupChatAction.triggered.connect(lambda: self.addNewGroupTab(self.connectionManager.nick))
         authChatAction.triggered.connect(self.__showAuthDialog)
         exitAction.triggered.connect(self.__exit)
 

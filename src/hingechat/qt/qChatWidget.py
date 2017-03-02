@@ -19,7 +19,9 @@ from src.hinge.utils import constants
 from src.hinge.utils import utils
 from src.hinge.utils import errors
 
+
 class QChatWidget(QWidget):
+    
     def __init__(self, connectionManager, nick, parent=None):
         QWidget.__init__(self, parent)
 

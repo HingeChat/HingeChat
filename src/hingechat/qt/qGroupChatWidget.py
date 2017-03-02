@@ -196,7 +196,7 @@ class QGroupChatWidget(QWidget):
         self.addUserText.show()
         self.user = QLineEdit(self)
         self.user.setGeometry(200, 120, 240, 20)
-        self.user.returnPressed.connect(self.addUser)
+        self.user.returnPressed.connect(lambda: self.addUser(self.user))
         self.user.show()
         self.addUserButton = QPushButton('Add User', self)
         self.addUserButton.setGeometry(250, 150, 150, 25)
