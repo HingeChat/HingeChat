@@ -32,7 +32,7 @@ from src.hinge.utils import *
 
 
 class QChatWindow(QMainWindow):
-    
+
     new_client_signal = pyqtSignal(int)
     client_ready_signal = pyqtSignal(int)
     smp_request_signal = pyqtSignal(int, int, str, int)
@@ -160,21 +160,27 @@ class QChatWindow(QMainWindow):
 
     @pyqtSlot(int, int)
     def handleErrorSlot(self, client_id, errno):
-        # If no nick was given, disable all tabs
         nick = self.client.id_map.get(client_id).nick
         if nick == '':
+            # If no nick was given, disable all tabs
             self.__disableAllTabs()
         else:
-            tab = self.getTabByNick(nick)[0]
-            tab.resetOrDisable()
+            try:
+                tab = self.getTabByNick(nick)[0]
+                tab.resetOrDisable()
+            except:
+                tab = self.getTabByText("New Chat")
+                if hasattr(tab, 'resetOrDisable'):
+                    tab.resetOrDisable()
 
-        if errno == ERR_CONNECTION_ENDED:
+
+        if errno == ERR_CONN_ENDED:
             QMessageBox.warning(self, TITLE_CONNECTION_ENDED, CONNECTION_ENDED % (nick))
         elif errno == ERR_NICK_NOT_FOUND:
             QMessageBox.information(self, TITLE_NICK_NOT_FOUND, NICK_NOT_FOUND % (nick))
             if hasattr(tab, 'nick'):
                 tab.nick = None
-        elif errno == ERR_CONNECTION_REJECTED:
+        elif errno == ERR_CONN_REJECTED:
             QMessageBox.warning(self, TITLE_CONNECTION_REJECTED, CONNECTION_REJECTED % (nick))
             if hasattr(tab, 'nick'):
                 tab.nick = None

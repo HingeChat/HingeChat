@@ -62,7 +62,7 @@ class QtUI(QApplication):
             self.client.disconnectFromServer()
 
         time.sleep(0.25)
-        
+
         if self.chat_window:
             self.chat_window.exit()
 
@@ -84,7 +84,7 @@ class QtUI(QApplication):
             'smp': self.chat_window.smpRequest,
             'err': self.chat_window.handleError
         }
-        
+
         self.client = Client(self.nick, (self.turn, self.port), callbacks)
         self.chat_window.client = self.client
 
@@ -103,5 +103,5 @@ class QtUI(QApplication):
     def __connectFailure(self, error_message):
         if 'Errno 111' in error_message:
             error_message = "Unable to contact the server. Try again later."
-        QMessageBox.critical(self.chatWindow, FAILED_TO_CONNECT, error_message)
+        QMessageBox.critical(self.chat_window, FAILED_TO_CONNECT, error_message)
         self.restart()
