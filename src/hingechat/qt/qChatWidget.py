@@ -13,28 +13,26 @@ from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QWidget
 
-from . import qtUtils
-
-from src.hinge.utils import constants
-from src.hinge.utils import utils
-from src.hinge.utils import errors
+from src.hingechat.qt import qtUtils
+from src.hinge.utils import *
 
 
 class QChatWidget(QWidget):
     
-    def __init__(self, connectionManager, nick, parent=None):
+    def __init__(self, client, nick, parent=None):
         QWidget.__init__(self, parent)
 
-        self.connectionManager = connectionManager
+        self.client = client
         self.nick = nick
-        self.isDisabled = False
-        self.wasCleared = False
+        
+        self.disabled = False
+        self.cleared = False
 
-        self.urlRegex = re.compile(constants.URL_REGEX)
+        self.urlRegex = re.compile(URL_REGEX)
 
         self.chatLog = QTextBrowser()
         self.chatLog.setOpenExternalLinks(True)
-
+        
         self.chatInput = QTextEdit()
         self.chatInput.textChanged.connect(self.chatInputTextChanged)
 

@@ -9,8 +9,11 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QWidget
 
-from src.hinge.utils import constants
-from src.hinge.utils import utils
+from src.hinge.utils import *
+
+
+is_light_theme = False
+
 
 def centerWindow(window):
     centerPoint = QDesktopWidget().availableGeometry().center()
@@ -18,25 +21,29 @@ def centerWindow(window):
     geo.moveCenter(centerPoint)
     window.move(geo.topLeft())
 
+
 def resizeWindow(window, width, height):
     window.setGeometry(0, 0, width, height)
 
-def showDesktopNotification(systemTrayIcon, title, message):
-    systemTrayIcon.showMessage(title, message)
 
-isLightTheme = False
+def showDesktopNotification(tray_icon, title, message):
+    tray_icon.showMessage(title, message)
+
 
 def setIsLightTheme(color):
-    global isLightTheme
-    isLightTheme = (color.red() > 100 and color.blue() > 100 and color.green() > 100)
+    global is_light_theme
+    is_light_theme = (color.red() > 100 and color.blue() > 100 and color.green() > 100)
+
 
 def getAbsoluteImagePath(imageName, root=False):
-    global isLightTheme
+    global is_light_theme
     if root:
-        return utils.getAbsoluteResourcePath('images/' + imageName)
-    return utils.getAbsoluteResourcePath('images/' + ('light' if isLightTheme else 'dark') + '/' + imageName)
+        return getAbsoluteResourcePath('images/' + imageName)
+    else:
+        return getAbsoluteResourcePath('images/' + ('light' if is_light_theme else 'dark') + '/' + imageName)
 
-def exitApp(systemTrayIcon=None):
-    if systemTrayIcon != None:
-        systemTrayIcon.hide()
+
+def exitApp(tray_icon=None):
+    if tray_icon is not None:
+        tray_icon.hide()
     os.kill(os.getpid(), signal.SIGINT)

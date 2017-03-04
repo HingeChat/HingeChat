@@ -11,12 +11,13 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QVBoxLayout
 
-from .qLine import QLine
-from . import qtUtils
+from src.hingechat.qt.qLine import QLine
+from src.hingechat.qt import qtUtils
+from src.hinge.utils import *
 
-from src.hinge.utils import constants
 
 class QSMPRespondDialog(QDialog):
+
     def __init__(self, nick, question, parent=None):
         QDialog.__init__(self, parent)
 

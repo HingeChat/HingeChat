@@ -10,12 +10,10 @@ from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QVBoxLayout
 
-from .qNickInputWidget import QNickInputWidget
-from .qLinkLabel import QLinkLabel
-from . import qtUtils
-
-from src.hinge.utils import constants
-from src.hinge.utils import utils
+from src.hingechat.qt.qNickInputWidget import QNickInputWidget
+from src.hingechat.qt.qLinkLabel import QLinkLabel
+from src.hingechat.qt import qtUtils
+from src.hinge.utils import *
 
 class QLoginWindow(QDialog):
     def __init__(self, parent, nick=""):

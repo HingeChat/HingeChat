@@ -1,10 +1,6 @@
 import sys
 import time
 
-from src.hinge.network.Client import Client
-from src.hinge.network.ConnectionManager import ConnectionManager
-from src.hingechat.network import qtThreads
-
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication
@@ -13,106 +9,99 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPalette
 from PyQt5.QtWidgets import QWidget
 
-from .qAcceptDialog import QAcceptDialog
-from .qChatWindow import QChatWindow
-from .qLoginWindow import QLoginWindow
-from . import qtUtils
-from .qWaitingDialog import QWaitingDialog
-
-from src.hinge.utils import constants
-from src.hinge.utils import errors
-from src.hinge.utils import exceptions
-from src.hinge.utils import utils
+from src.hinge.network.Client import Client
+from src.hingechat.network import qtThreads
+from src.hingechat.qt import qtUtils
+from src.hingechat.qt.qAcceptDialog import QAcceptDialog
+from src.hingechat.qt.qChatWindow import QChatWindow
+from src.hingechat.qt.qLoginWindow import QLoginWindow
+from src.hingechat.qt.qWaitingDialog import QWaitingDialog
+from src.hinge.utils import *
 
 
 class QtUI(QApplication):
+
     def __init__(self, argv, nick, turn, port):
         QApplication.__init__(self, argv)
 
         self.nick = nick
         self.turn = turn
         self.port = port
-        self.isEventLoopRunning = False
+        self.event_loop_running = False
+
+        self.client = None
+        self.chat_window = None
+        self.waiting_dialog = None
 
         qtUtils.setIsLightTheme(self.palette().color(QPalette.Window))
 
         self.aboutToQuit.connect(self.stop)
 
-
     def start(self):
-        # Start a timer to allow for ctrl+c handling
         self.timer = QTimer()
         self.timer.start(500)
         self.timer.timeout.connect(lambda: None)
 
-        # Show the login window and get the nick
         nick = QLoginWindow.getNick(QWidget(), self.nick)
-
-        # If the nick is None, the user closed the window so we should quit the app
         if nick is None:
             qtUtils.exitApp()
         else:
             self.nick = str(nick)
 
-        # Show the chat window
-        self.chatWindow = QChatWindow(self.restart)
-        self.chatWindow.show()
+        self.chat_window = QChatWindow(self.restart)
+        self.chat_window.show()
 
         self.__connectToServer()
 
-        # Don't start the event loop again if it's already running
-        if not self.isEventLoopRunning:
-            self.isEventLoopRunning = True
+        if not self.event_loop_running:
+            self.event_loop_running = True
             self.exec_()
 
-
     def stop(self):
-        if hasattr(self, 'connectionManager'):
-            self.connectionManager.disconnectFromServer()
+        if self.client:
+            self.client.disconnectFromServer()
 
-        # Give the send thread time to get the disconnect messages out before exiting
-        # and killing the thread
-        time.sleep(.25)
-
-        self.chatWindow.exit()
-
+        time.sleep(0.25)
+        
+        if self.chat_window:
+            self.chat_window.exit()
 
     def restart(self):
-        if hasattr(self, 'connectionManager'):
-            self.connectionManager.disconnectFromServer()
+        if self.client:
+            self.client.disconnectFromServer()
 
         self.closeAllWindows()
-        if hasattr(self, 'chatWindow'):
-            del self.chatWindow
+        if self.chat_window:
+            self.chat_window = None
 
         self.start()
 
-
     def __connectToServer(self):
-        # Create the connection manager to manage all communcation to the server
-        self.connectionManager = ConnectionManager(self.nick, (self.turn, self.port), self.chatWindow.postMessage, self.chatWindow.newClient, self.chatWindow.clientReady, self.chatWindow.smpRequest, self.chatWindow.handleError)
-        self.chatWindow.connectionManager = self.connectionManager
+        callbacks = {
+            'recv': self.chat_window.postMessage,
+            'new': self.chat_window.newClient,
+            'handshake': self.chat_window.clientReady,
+            'smp': self.chat_window.smpRequest,
+            'err': self.chat_window.handleError
+        }
+        
+        self.client = Client(self.nick, (self.turn, self.port), callbacks)
+        self.chat_window.client = self.client
 
-        # Start the connect thread
-        self.connectThread = qtThreads.QtServerConnectThread(self.connectionManager, self.__postConnect, self.__connectFailure)
-        self.connectThread.start()
+        self.connect_thread = qtThreads.QtServerConnectThread(self.client, self.__postConnect, self.__connectFailure)
+        self.connect_thread.start()
 
-        # Show the waiting dialog
-        self.waitingDialog = QWaitingDialog(self.chatWindow, "Connecting to server...")
-        self.waitingDialog.show()
-
+        self.waiting_dialog = QWaitingDialog(self.chat_window, "Connecting to server...")
+        self.waiting_dialog.show()
 
     @pyqtSlot()
     def __postConnect(self):
-        self.waitingDialog.close()
-        self.chatWindow.connectedToServer()
-
+        self.waiting_dialog.close()
+        self.chat_window.connectedToServer()
 
     @pyqtSlot(str)
-    def __connectFailure(self, errorMessage):
-        # Show a more friendly error if the connection was refused (errno 111)
-        if 'Errno 111' in errorMessage:
-            errorMessage = "Unable to contact the server. Try again later."
-
-        QMessageBox.critical(self.chatWindow, errors.FAILED_TO_CONNECT, errorMessage)
+    def __connectFailure(self, error_message):
+        if 'Errno 111' in error_message:
+            error_message = "Unable to contact the server. Try again later."
+        QMessageBox.critical(self.chatWindow, FAILED_TO_CONNECT, error_message)
         self.restart()

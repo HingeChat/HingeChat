@@ -7,10 +7,11 @@ from src.hinge.server import TURNServer
 
 class ServerConsole(Console):
 
-    def __init__(self, nickMap, ipMap):
-        Console.__init__(self, nickMap, ipMap)
-        self.nickMap = TURNServer.nickMap
-        self.ipMap = TURNServer.ipMap
+    def __init__(self, nick_map, ip_map):
+        Console.__init__(self, nick_map, ip_map)
+        
+        self.nick_map = TURNServer.nick_map
+        self.ip_map = TURNServer.ip_map
         self.commands = {
             'list': {
                 'callback': self.list,
@@ -52,19 +53,19 @@ class ServerConsole(Console):
 
     def list(self, arg):
         print("Registered nicks\n" + "=" * 16)
-        for nick, client in self.nickMap.items():
+        for nick, client in self.nick_map.items():
             print(nick + " - " + str(client.sock))
 
     def zombies(self, arg):
         print("Zombie Connections\n" + "=" * 18)
-        for addr, client in self.ipMap.items():
+        for addr, client in self.ip_map.items():
             print(addr)
 
     def kick(self, nick):
         if not nick:
             print("Kick command requires a nick")
         else:
-            client = self.nickMap.get(nick)
+            client = self.nick_map.get(nick)
             if client:
                 client.kick()
                 print("{0} kicked from server".format(nick))
@@ -75,7 +76,7 @@ class ServerConsole(Console):
         if not ip:
             print("Kill command requires an IP")
         else:
-            client = self.ipMap.get(ip)
+            client = self.ip_map.get(ip)
             if client:
                 client.kick()
                 print("{0} killed".format(ip))
@@ -86,5 +87,5 @@ class ServerConsole(Console):
         os.kill(os.getpid(), signal.SIGINT)
 
     def help(self, arg):
-        helpMessages = [cmd[1]['help'] for cmd in iter(self.commands.items())]
-        print("Available commands:\n\t{0}".format('\n\t'.join(helpMessages)))
+        help_messages = [cmd[1]['help'] for cmd in iter(self.commands.items())]
+        print("Available commands:\n\t{0}".format('\n\t'.join(help_messages)))
