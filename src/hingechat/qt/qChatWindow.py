@@ -173,7 +173,6 @@ class QChatWindow(QMainWindow):
                 if hasattr(tab, 'resetOrDisable'):
                     tab.resetOrDisable()
 
-
         if errno == ERR_CONN_ENDED:
             QMessageBox.warning(self, TITLE_CONNECTION_ENDED, CONNECTION_ENDED % (nick))
         elif errno == ERR_NICK_NOT_FOUND:

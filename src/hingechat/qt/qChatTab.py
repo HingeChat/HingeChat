@@ -18,7 +18,7 @@ from src.hinge.utils import *
 
 
 class QChatTab(QWidget):
-    
+
     def __init__(self, chat_window, nick=None, just_accepted=False):
         QWidget.__init__(self)
 
@@ -49,6 +49,7 @@ class QChatTab(QWidget):
         self.nick = nick
         self.widget_stack.widget(1).setConnectingToNick(self.nick)
         self.widget_stack.setCurrentIndex(1)
+        self.chat_window.client.getClientId(self.nick)
         self.chat_window.client.openSession(self.chat_window.client)
 
     def appendMessage(self, message, source):
