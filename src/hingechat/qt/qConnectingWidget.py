@@ -4,10 +4,11 @@ from PyQt5.QtWidgets import QLabel
 from PyQt5.QtGui import QMovie
 from PyQt5.QtWidgets import QWidget
 
-from . import qtUtils
+from src.hingechat.qt import qtUtils
 
 
 class QConnectingWidget(QWidget):
+
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
 

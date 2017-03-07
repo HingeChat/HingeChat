@@ -49,8 +49,7 @@ class QChatTab(QWidget):
         self.nick = nick
         self.widget_stack.widget(1).setConnectingToNick(self.nick)
         self.widget_stack.setCurrentIndex(1)
-        self.chat_window.client.getClientId(self.nick)
-        self.chat_window.client.openSession(self.chat_window.client)
+        self.chat_window.client.openSession(self.nick)
 
     def appendMessage(self, message, source):
         self.widget_stack.widget(2).appendMessage(message, source)

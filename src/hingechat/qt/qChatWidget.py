@@ -88,8 +88,10 @@ class QChatWidget(QWidget):
             self.sendTypingStatus(constants.TYPING_STOP_WITH_TEXT)
 
     def sendMessage(self):
-        if self.isDisabled:
+        if self.disabled:
             return
+        else:
+            pass
 
         self.typingTimer.stop()
 
@@ -193,23 +195,19 @@ class QChatWidget(QWidget):
         if shouldScroll:
             scrollbar.setValue(scrollbar.maximum())
 
-
     def __linkify(self, text):
         matches = self.urlRegex.findall(text)
-
         for match in matches:
             text = text.replace(match[0], '<a href="%s">%s</a>' % (match[0], match[0]))
-
         return text
 
-
     def __getColor(self, source):
-        if source == constants.SENDER:
+        if source == SENDER:
             if qtUtils.isLightTheme:
                 return '#0000CC'
             else:
                 return '#6666FF'
-        elif source == constants.RECEIVER:
+        elif source == RECEIVER:
             if qtUtils.isLightTheme:
                 return '#CC0000'
             else:
@@ -220,12 +218,10 @@ class QChatWidget(QWidget):
             else:
                 return '#FFFFFF'
 
-
     def disable(self):
-        self.isDisabled = True
+        self.disabled = True
         self.chatInput.setReadOnly(True)
 
-
     def enable(self):
-        self.isDisabled = False
+        self.disabled = False
         self.chatInput.setReadOnly(False)

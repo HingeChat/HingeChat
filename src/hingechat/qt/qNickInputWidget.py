@@ -56,7 +56,6 @@ class QNickInputWidget(QWidget):
 
         self.setLayout(hbox2)
 
-
     def __connectClicked(self):
         nick = str(self.nick_edit.text()).lower()
         status = ClientManager.isNickValid(nick)

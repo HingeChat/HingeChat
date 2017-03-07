@@ -15,7 +15,9 @@ from src.hingechat.qt.qLinkLabel import QLinkLabel
 from src.hingechat.qt import qtUtils
 from src.hinge.utils import *
 
+
 class QLoginWindow(QDialog):
+
     def __init__(self, parent, nick=""):
         QDialog.__init__(self, parent)
         self.nick = None
@@ -34,17 +36,16 @@ class QLoginWindow(QDialog):
         qtUtils.resizeWindow(self, 500, 200)
         qtUtils.centerWindow(self)
 
-
     def connectClicked(self, nick):
         self.nick = nick
         self.close()
-
 
     @staticmethod
     def getNick(parent, nick=""):
         if nick is None:
             nick = ""
-
+        else:
+            pass
         loginWindow = QLoginWindow(parent, nick)
         loginWindow.exec_()
         return loginWindow.nick

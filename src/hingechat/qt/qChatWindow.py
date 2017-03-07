@@ -160,7 +160,7 @@ class QChatWindow(QMainWindow):
 
     @pyqtSlot(int, int)
     def handleErrorSlot(self, client_id, errno):
-        nick = self.client.id_map.get(client_id).nick
+        nick = self.client.nick
         if nick == '':
             # If no nick was given, disable all tabs
             self.__disableAllTabs()
@@ -269,7 +269,7 @@ class QChatWindow(QMainWindow):
     @pyqtSlot(int)
     def closeTab(self, index):
         tab = self.chat_tabs.widget(index)
-        self.client.closeChat(tab.nick)
+        self.client.closeSession(tab.nick)
 
         self.chatTabs.removeTab(index)
 
