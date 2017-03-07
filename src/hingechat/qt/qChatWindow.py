@@ -97,12 +97,12 @@ class QChatWindow(QMainWindow):
 
     @pyqtSlot(int)
     def newClientSlot(self, client_id):
-        nick = self.client.id_map.get(client_id).nick
+        nick = self.client.getClientNick(client_id)
 
         if not self.isActiveWindow():
-            qtUtils.showDesktopNotification(self.systemTrayIcon, "Chat request from %s" % nick, '')
+            qtUtils.showDesktopNotification(self.tray_icon, "Chat request from %s" % nick, '')
 
-        accept = QAcceptDialog.getAnswer(self, client_id)
+        accept = QAcceptDialog.getAnswer(self, nick)
         if not accept:
             self.client.newClientRejected(client_id)
             return
@@ -112,7 +112,7 @@ class QChatWindow(QMainWindow):
         else:
             self.addNewTab(nick)
 
-        self.client.newClientAccepted(client_id)
+        self.client.newClientAccepted(nick)
 
     def addNewTab(self, nick=None):
         new_tab = QChatTab(self, nick)
