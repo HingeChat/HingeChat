@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
 from src.hingechat.qt import qtUtils
+from src.hinge.server.ClientManager import ClientManager
 from src.hinge.utils import *
 
 
@@ -58,7 +59,7 @@ class QNickInputWidget(QWidget):
 
     def __connectClicked(self):
         nick = str(self.nick_edit.text()).lower()
-        status = isValidNick(nick)
+        status = ClientManager.isNickValid(nick)
         if status == VALID_NICK:
             self.connect_clicked_slot(nick)
         elif status == INVALID_NICK_CONTENT:

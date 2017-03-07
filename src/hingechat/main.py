@@ -88,16 +88,16 @@ class Server(Main):
 
     def __init__(self, args):
         Main.__init__(self, args)
-        self.console = ServerConsole(0, 0)
-        self.turn_server = TURNServer(self.args.port)
+        self.server = TURNServer(self.args.port)
+        self.console = ServerConsole(self.server.client_manager)
 
     def start(self):
         signal.signal(signal.SIGINT, self.stop)
         self.console.start()
-        self.turn_server.start()
+        self.server.start()
 
     def stop(self, signal, frame):
-        self.turn_server.stop()
+        self.server.stop()
         self.exit()
 
 
