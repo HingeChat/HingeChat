@@ -36,7 +36,7 @@ class QChatWindow(QMainWindow):
     new_client_signal = pyqtSignal(str)
     client_ready_signal = pyqtSignal(str)
     smp_request_signal = pyqtSignal(int, str, str, int)
-    handle_error_signal = pyqtSignal(int, int)
+    handle_error_signal = pyqtSignal(str, int)
     send_message_signal = pyqtSignal(str, str, str)
 
     def __init__(self, restart_callback, client=None, message_queue=None):
@@ -159,15 +159,16 @@ class QChatWindow(QMainWindow):
     def handleError(self, client_id, errno):
         self.handle_error_signal.emit(client_id, errno)
 
-    @pyqtSlot(int, int)
+    @pyqtSlot(str, int)
     def handleErrorSlot(self, client_id, errno):
-        nick = self.client.nick
-        if nick == '':
-            # If no nick was given, disable all tabs
+        if client_id == SERVER_ROUTE:
+            # If the message comes from the server, disable all tabs
+            nick = ''
             self.__disableAllTabs()
         else:
+            nick = self.client.getClientNick(client_id)
             try:
-                tab = self.getTabByNick(nick)[0]
+                tab, tab_index = self.getTabByNick(nick)
                 tab.resetOrDisable()
             except:
                 tab = self.getTabByText("New Chat")
@@ -175,6 +176,7 @@ class QChatWindow(QMainWindow):
                     tab.resetOrDisable()
 
         if errno == ERR_CONN_ENDED:
+            self.client.destroySession(client_id)
             QMessageBox.warning(self, TITLE_CONNECTION_ENDED, CONNECTION_ENDED % (nick))
         elif errno == ERR_NICK_NOT_FOUND:
             QMessageBox.information(self, TITLE_NICK_NOT_FOUND, NICK_NOT_FOUND % (nick))
@@ -249,9 +251,9 @@ class QChatWindow(QMainWindow):
             else:
                 self.status_bar.showMessage('')
 
-            chat_log_scrollbar = tab.widget_stack.widget(2).chatLog.verticalScrollBar()
+            chat_log_scrollbar = tab.widget_stack.widget(2).chat_log.verticalScrollBar()
             if not self.isActiveWindow() or tab_index != self.chat_tabs.currentIndex() or \
-               chat_log_scrollbar.value() != chatLogScrollbar.maximum():
+               chat_log_scrollbar.value() != chat_log_scrollbar.maximum():
                 qtUtils.showDesktopNotification(self.tray_icon, nick, data)
 
     @pyqtSlot(int)
@@ -270,9 +272,14 @@ class QChatWindow(QMainWindow):
     @pyqtSlot(int)
     def closeTab(self, index):
         tab = self.chat_tabs.widget(index)
-        self.client.closeSession(tab.nick)
 
-        self.chatTabs.removeTab(index)
+        remote_id = self.client.getClientId(tab.nick)
+        if self.client.getSession(remote_id):
+            self.client.closeSession(tab.nick)
+        else:
+            pass
+
+        self.chat_tabs.removeTab(index)
 
         if self.chat_tabs.count() == 0:
             self.addNewTab()
