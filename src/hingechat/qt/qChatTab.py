@@ -30,7 +30,7 @@ class QChatTab(QWidget):
         self.widget_stack = QStackedWidget(self)
         self.widget_stack.addWidget(QNickInputWidget('new_chat.png', 150, self.connectClicked, parent=self))
         self.widget_stack.addWidget(QConnectingWidget(parent=self))
-        self.widget_stack.addWidget(QChatWidget(self.chat_window.client, nick=nick, parent=self))
+        self.widget_stack.addWidget(QChatWidget(self.chat_window, nick=nick, parent=self))
 
         if self.nick is not None:
             self.widget_stack.setCurrentIndex(2)
@@ -50,6 +50,7 @@ class QChatTab(QWidget):
         self.widget_stack.widget(1).setConnectingToNick(self.nick)
         self.widget_stack.setCurrentIndex(1)
         self.chat_window.client.openSession(self.nick)
+        self.widget_stack.widget(2).setRemoteNick(self.nick)
 
     def appendMessage(self, message, source):
         self.widget_stack.widget(2).appendMessage(message, source)

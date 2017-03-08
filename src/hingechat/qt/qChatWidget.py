@@ -19,10 +19,10 @@ from src.hinge.utils import *
 
 class QChatWidget(QWidget):
     
-    def __init__(self, client, nick, parent=None):
+    def __init__(self, chat_window, nick, parent=None):
         QWidget.__init__(self, parent)
 
-        self.client = client
+        self.chat_window = chat_window
         self.nick = nick
         
         self.disabled = False
@@ -67,25 +67,28 @@ class QChatWidget(QWidget):
         self.typingTimer.setSingleShot(True)
         self.typingTimer.timeout.connect(self.stoppedTyping)
 
+    def setRemoteNick(self, nick):
+        self.nick = nick
+
     def chatInputTextChanged(self):
         # Check if the text changed was the text box being cleared to avoid sending an invalid typing status
-        if self.wasCleared:
-            self.wasCleared = False
+        if self.cleared:
+            self.cleared = False
             return
 
         if str(self.chatInput.toPlainText())[-1:] == '\n':
             self.sendMessage()
         else:
             # Start a timer to check for the user stopping typing
-            self.typingTimer.start(constants.TYPING_TIMEOUT)
-            self.sendTypingStatus(constants.TYPING_START)
+            self.typingTimer.start(TYPING_TIMEOUT)
+            self.sendTypingStatus(TYPING_START)
 
     def stoppedTyping(self):
         self.typingTimer.stop()
         if str(self.chatInput.toPlainText()) == '':
-            self.sendTypingStatus(constants.TYPING_STOP_WITHOUT_TEXT)
+            self.sendTypingStatus(TYPING_STOP_WITHOUT_TEXT)
         else:
-            self.sendTypingStatus(constants.TYPING_STOP_WITH_TEXT)
+            self.sendTypingStatus(TYPING_STOP_WITH_TEXT)
 
     def sendMessage(self):
         if self.disabled:
@@ -105,24 +108,25 @@ class QChatWidget(QWidget):
         text = self.__linkify(text)
 
         # Add the message to the message queue to be sent
-        self.connectionManager.getClient(self.otherNick).sendChatMessage(text)
+        self.chat_window.client.getSession(self.remote_id).sendChatMessage(text)
 
         # Clear the chat input
         self.wasCleared = True
         self.chatInput.clear()
 
-        self.appendMessage(text, constants.SENDER)
+        self.appendMessage(text, MSG_SENDER)
 
     def sendTypingStatus(self, status):
-        self.connectionManager.getClient(self.otherNick).sendTypingMessage(status)
+        self.chat_window.client.getSession(self.remote_id).sendTypingMessage(status)
 
     def showNowChattingMessage(self, nick):
-        self.otherNick = nick
-        self.appendMessage("You are now securely chatting with " + self.otherNick + " :)",
-                           constants.SERVICE, showTimestampAndNick=False)
+        self.nick = nick
+        self.remote_id = self.chat_window.client.getClientId(self.nick)
+        self.appendMessage("You are now securely chatting with " + self.nick + " :)",
+                           MSG_SERVICE, show_timestamp_and_nick=False)
 
         self.appendMessage("It's a good idea to verify the communcation is secure by selecting "
-                           "\"authenticate buddy\" in the options menu.", constants.SERVICE, showTimestampAndNick=False)
+                           "\"authenticate buddy\" in the options menu.", MSG_SERVICE, show_timestamp_and_nick=False)
 
         self.addNickButton = QPushButton('Add', self)
         self.addNickButton.setGeometry(584, 8, 31, 23)
@@ -172,12 +176,12 @@ class QChatWidget(QWidget):
         self.cancel.clicked.connect(self.cancel.hide)
         self.cancel.show()
 
-    def appendMessage(self, message, source, showTimestampAndNick=True):
+    def appendMessage(self, message, source, show_timestamp_and_nick=True):
         color = self.__getColor(source)
 
-        if showTimestampAndNick:
-            timestamp = '<font color="' + color + '">(' + utils.getTimestamp() + ') <strong>' + \
-                        (self.connectionManager.nick if source == constants.SENDER else self.otherNick) + \
+        if show_timestamp_and_nick:
+            timestamp = '<font color="' + color + '">(' + getTimestamp() + ') <strong>' + \
+                        (self.chat_window.client.nick if source == MSG_SENDER else self.nick) + \
                         ':</strong></font> '
         else:
             timestamp = ''
@@ -202,18 +206,18 @@ class QChatWidget(QWidget):
         return text
 
     def __getColor(self, source):
-        if source == SENDER:
-            if qtUtils.isLightTheme:
+        if source == MSG_SENDER:
+            if qtUtils.is_light_theme:
                 return '#0000CC'
             else:
                 return '#6666FF'
-        elif source == RECEIVER:
-            if qtUtils.isLightTheme:
+        elif source == MSG_RECEIVER:
+            if qtUtils.is_light_theme:
                 return '#CC0000'
             else:
                 return '#CC3333'
         else:
-            if qtUtils.isLightTheme:
+            if qtUtils.is_light_theme:
                 return '#000000'
             else:
                 return '#FFFFFF'

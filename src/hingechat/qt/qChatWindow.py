@@ -33,11 +33,11 @@ from src.hinge.utils import *
 
 class QChatWindow(QMainWindow):
 
-    new_client_signal = pyqtSignal(int)
-    client_ready_signal = pyqtSignal(int)
-    smp_request_signal = pyqtSignal(int, int, str, int)
+    new_client_signal = pyqtSignal(str)
+    client_ready_signal = pyqtSignal(str)
+    smp_request_signal = pyqtSignal(int, str, str, int)
     handle_error_signal = pyqtSignal(int, int)
-    send_message_signal = pyqtSignal(str, int, str)
+    send_message_signal = pyqtSignal(str, str, str)
 
     def __init__(self, restart_callback, client=None, message_queue=None):
         QMainWindow.__init__(self)
@@ -92,19 +92,19 @@ class QChatWindow(QMainWindow):
     def connectedToServer(self):
         self.addNewTab()
 
-    def newClient(self, client_id):
-        self.new_client_signal.emit(client_id)
+    def newClient(self, remote_id):
+        self.new_client_signal.emit(remote_id)
 
-    @pyqtSlot(int)
-    def newClientSlot(self, client_id):
-        nick = self.client.getClientNick(client_id)
+    @pyqtSlot(str)
+    def newClientSlot(self, remote_id):
+        nick = self.client.getClientNick(remote_id)
 
         if not self.isActiveWindow():
             qtUtils.showDesktopNotification(self.tray_icon, "Chat request from %s" % nick, '')
 
         accept = QAcceptDialog.getAnswer(self, nick)
         if not accept:
-            self.client.newClientRejected(client_id)
+            self.client.newClientRejected(remote_id)
             return
 
         if self.isNickInTabs(nick):
@@ -112,7 +112,7 @@ class QChatWindow(QMainWindow):
         else:
             self.addNewTab(nick)
 
-        self.client.newClientAccepted(nick)
+        self.client.newClientAccepted(remote_id)
 
     def addNewTab(self, nick=None):
         new_tab = QChatTab(self, nick)
@@ -123,12 +123,12 @@ class QChatWindow(QMainWindow):
         self.chat_tabs.setCurrentWidget(new_tab)
         new_tab.setFocus()
 
-    def clientReady(self, client_id):
-        self.client_ready_signal.emit(client_id)
+    def clientReady(self, remote_id):
+        self.client_ready_signal.emit(remote_id)
 
-    @pyqtSlot(int)
-    def clientReadySlot(self, client_id):
-        nick = self.client.id_map.get(client_id).nick
+    @pyqtSlot(str)
+    def clientReadySlot(self, remote_id):
+        nick = self.client.getClientNick(remote_id)
 
         tab, tab_index = self.getTabByNick(nick)
         self.chat_tabs.setTabText(tab_index, nick)
@@ -140,7 +140,7 @@ class QChatWindow(QMainWindow):
     def smpRequest(self, callback_type, client_id, question='', errno=0):
         self.smp_request_signal.emit(callback_type, client_id, question, errno)
 
-    @pyqtSlot(int, int, str, int)
+    @pyqtSlot(int, str, str, int)
     def smpRequestSlot(self, callback_type, client_id, question='', errno=0):
         if callback_type == SMP_CALLBACK_REQUEST:
             answer, clicked = QSMPRespondDialog.getAnswer(client_id, question)
@@ -224,13 +224,13 @@ class QChatWindow(QMainWindow):
     def postMessage(self, command, client_id, data):
         self.send_message_signal.emit(command, client_id, data)
 
-    @pyqtSlot(str, int, str)
-    def sendMessageToTab(self, command, client_id, data):
-        nick = self.client.id_map.get(client_id).nick
+    @pyqtSlot(str, str, str)
+    def sendMessageToTab(self, command, remote_id, data):
+        nick = self.client.getClientNick(remote_id)
         tab, tab_index = self.getTabByNick(nick)
         if command == COMMAND_TYPING:
-            if tabIndex == self.chat_tabs.currentIndex():
-                data = int(payload)
+            if tab_index == self.chat_tabs.currentIndex():
+                data = int(data)
                 if data == TYPING_START:
                     self.status_bar.showMessage("%s is typing" % nick)
                 elif data == TYPING_STOP_WITHOUT_TEXT:
@@ -240,13 +240,13 @@ class QChatWindow(QMainWindow):
         elif command == COMMAND_SMP_0:
             print(('got request for smp in tab %d' % (tab_index)))
         else:
-            tab.appendMessage(data, RECEIVER)
+            tab.appendMessage(data, MSG_RECEIVER)
 
             if tab_index != self.chat_tabs.currentIndex():
                 tab.unreadCount += 1
                 self.chat_tabs.setTabText(tab_index, "%s (%d)" % (tab.nick, tab.unread_count))
             else:
-                self.statusBar.showMessage('')
+                self.status_bar.showMessage('')
 
             chat_log_scrollbar = tab.widget_stack.widget(2).chatLog.verticalScrollBar()
             if not self.isActiveWindow() or tab_index != self.chat_tabs.currentIndex() or \
