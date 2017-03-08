@@ -7,10 +7,9 @@ from src.hinge.server import TURNServer
 
 class ServerConsole(Console):
 
-    def __init__(self, nickMap, ipMap):
-        Console.__init__(self, nickMap, ipMap)
-        self.nickMap = TURNServer.nickMap
-        self.ipMap = TURNServer.ipMap
+    def __init__(self, client_manager):
+        Console.__init__(self, client_manager)
+        self.client_manager = client_manager
         self.commands = {
             'list': {
                 'callback': self.list,
@@ -41,10 +40,15 @@ class ServerConsole(Console):
     def run(self):
         while True:
             try:
-                cInput = input(">> ").split()
-                if len(cInput) > 0:
-                    arg = cInput[1] if len(cInput) == 2 else None
-                    self.commands[cInput[0]]['callback'](arg)
+                command_input = input(">> ").split()
+                if len(command_input) > 0:
+                    cmd = self.commands[command_input[0]]['callback']
+                    if len(command_input) == 2:
+                        cmd(command_input[1])
+                    else:
+                        cmd(None)
+                else:
+                    pass
             except EOFError:
                 self.stop()
             except KeyError:
@@ -52,39 +56,43 @@ class ServerConsole(Console):
 
     def list(self, arg):
         print("Registered nicks\n" + "=" * 16)
-        for nick, client in self.nickMap.items():
-            print(nick + " - " + str(client.sock))
+        for client in self.client_manager.clients:
+            print(client.nick + " - " + str(client.ip))
 
     def zombies(self, arg):
         print("Zombie Connections\n" + "=" * 18)
-        for addr, client in self.ipMap.items():
-            print(addr)
+        for client in self.client_manager.clients:
+            if client.nick is None:
+                print(client.ip)
+            else:
+                pass
 
     def kick(self, nick):
         if not nick:
             print("Kick command requires a nick")
         else:
-            client = self.nickMap.get(nick)
+            client = self.client_manager.getClientByNick(nick)
             if client:
                 client.kick()
-                print("{0} kicked from server".format(nick))
+                print("{0} kicked from server".format(client.nick))
             else:
-                print("{0} is not a registered nick".format(nick))
+                print("{0} is not a registered nick".format(client.nick))
 
     def kill(self, ip):
         if not ip:
             print("Kill command requires an IP")
         else:
-            client = self.ipMap.get(ip)
-            if client:
-                client.kick()
+            try:
+                clients = self.client_manager.getConnectionsFromIp(ip)
+                for client in clients:
+                    client.kick()
                 print("{0} killed".format(ip))
-            else:
+            except KeyError:
                 print("{0} is not a zombie".format(ip))
 
     def stop(self, arg=None):
         os.kill(os.getpid(), signal.SIGINT)
 
     def help(self, arg):
-        helpMessages = [cmd[1]['help'] for cmd in iter(self.commands.items())]
-        print("Available commands:\n\t{0}".format('\n\t'.join(helpMessages)))
+        help_messages = [cmd[1]['help'] for cmd in iter(self.commands.items())]
+        print("Available commands:\n\t{0}".format('\n\t'.join(help_messages)))

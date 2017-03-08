@@ -23,390 +23,346 @@ from PyQt5.QtWidgets import QToolButton
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
-from .qChatTab import QChatTab
-from .qAcceptDialog import QAcceptDialog
-from .qSMPInitiateDialog import QSMPInitiateDialog
-from .qSMPRespondDialog import QSMPRespondDialog
-from . import qtUtils
-
-from src.hinge.utils import constants
-from src.hinge.utils import errors
-from src.hinge.utils import utils
+from src.hingechat.qt.qChatTab import QChatTab
+from src.hingechat.qt.qAcceptDialog import QAcceptDialog
+from src.hingechat.qt.qSMPInitiateDialog import QSMPInitiateDialog
+from src.hingechat.qt.qSMPRespondDialog import QSMPRespondDialog
+from src.hingechat.qt import qtUtils
+from src.hinge.utils import *
 
 
 class QChatWindow(QMainWindow):
-    
-    newClientSignal = pyqtSignal(str, bool, list)
-    clientReadySignal = pyqtSignal(str, bool)
-    smpRequestSignal = pyqtSignal(int, str, str, int)
-    handleErrorSignal = pyqtSignal(str, int)
-    sendMessageToTabSignal = pyqtSignal(str, str, str, bool)
 
-    def __init__(self, restartCallback, connectionManager=None, messageQueue=None):
+    new_client_signal = pyqtSignal(str)
+    client_ready_signal = pyqtSignal(str)
+    smp_request_signal = pyqtSignal(int, str, str, int)
+    handle_error_signal = pyqtSignal(str, int)
+    send_message_signal = pyqtSignal(str, str, str)
+
+    def __init__(self, restart_callback, client=None, message_queue=None):
         QMainWindow.__init__(self)
 
-        self.restartCallback = restartCallback
-        self.connectionManager = connectionManager
-        self.messageQueue = messageQueue
-        self.newClientSignal.connect(self.newClientSlot)
-        self.clientReadySignal.connect(self.clientReadySlot)
-        self.smpRequestSignal.connect(self.smpRequestSlot)
-        self.handleErrorSignal.connect(self.handleErrorSlot)
-        self.sendMessageToTabSignal.connect(self.sendMessageToTab)
+        self.restart_callback = restart_callback
+        self.client = client
+        self.message_queue = message_queue
 
-        self.chatTabs = QTabWidget(self)
-        self.chatTabs.setTabsClosable(True)
-        self.chatTabs.setMovable(True)
-        self.chatTabs.tabCloseRequested.connect(self.closeTab)
-        self.chatTabs.currentChanged.connect(self.tabChanged)
+        self.new_client_signal.connect(self.newClientSlot)
+        self.client_ready_signal.connect(self.clientReadySlot)
+        self.smp_request_signal.connect(self.smpRequestSlot)
+        self.handle_error_signal.connect(self.handleErrorSlot)
+        self.send_message_signal.connect(self.sendMessageToTab)
 
-        self.statusBar = self.statusBar()
+        self.chat_tabs = QTabWidget(self)
+        self.chat_tabs.setTabsClosable(True)
+        self.chat_tabs.setMovable(True)
+        self.chat_tabs.tabCloseRequested.connect(self.closeTab)
+        self.chat_tabs.currentChanged.connect(self.tabChanged)
 
-        self.systemTrayIcon = QSystemTrayIcon(self)
-        self.systemTrayIcon.setIcon(QIcon(qtUtils.getAbsoluteImagePath('icon.ico', True)))
-        self.systemTrayIcon.setToolTip("HingeChat")
+        self.status_bar = self.statusBar()
 
-        self.systemTrayMenu = QMenu()
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon(qtUtils.getAbsoluteImagePath('icon.ico', True)))
+        self.tray_icon.setToolTip("HingeChat")
 
-        self.exitAct = QAction("Exit", self, shortcut="Ctrl+Q", statusTip="Exit", triggered=self.exit)
-        self.exitAct.setIcon(QIcon(qtUtils.getAbsoluteImagePath('exit.png')))
-
-        self.systemTrayMenu.addAction(self.exitAct)
-
-        self.systemTrayIcon.setContextMenu(self.systemTrayMenu)
-        self.systemTrayIcon.setVisible(True)
+        self.tray_menu = QMenu()
+        self.exit_action = QAction("Exit", self, shortcut="Ctrl+Q", statusTip="Exit", triggered=self.exit)
+        self.exit_action.setIcon(QIcon(qtUtils.getAbsoluteImagePath('exit.png')))
+        self.tray_menu.addAction(self.exit_action)
+        self.tray_icon.setContextMenu(self.tray_menu)
+        self.tray_icon.setVisible(True)
 
         self.__setMenubar()
 
         vbox = QVBoxLayout()
-        vbox.addWidget(self.chatTabs)
+        vbox.addWidget(self.chat_tabs)
 
-        # Add the completeted layout to the window
-        self.centralWidget = QWidget()
-        self.centralWidget.setLayout(vbox)
-        self.setCentralWidget(self.centralWidget)
+        self.central_widget = QWidget()
+        self.central_widget.setLayout(vbox)
+        self.setCentralWidget(self.central_widget)
 
         qtUtils.resizeWindow(self, 700, 400)
         qtUtils.centerWindow(self)
 
-        # Title and icon
         self.setWindowTitle("HingeChat")
         self.setWindowIcon(QIcon(qtUtils.getAbsoluteImagePath('icon.png')))
 
     def exit(self):
-        qtUtils.exitApp(self.systemTrayIcon)
+        qtUtils.exitApp(self.tray_icon)
 
     def connectedToServer(self):
-        # Add an initial tab once connected to the server
         self.addNewTab()
 
-    def newClient(self, nick, isGroup=False, nicks=[]):
-        # This function is called from a bg thread. Send a signal to get on the UI thread
-        self.newClientSignal.emit(nick, isGroup, nicks)
+    def newClient(self, remote_id):
+        self.new_client_signal.emit(remote_id)
 
-    @pyqtSlot(str, bool, list)
-    def newClientSlot(self, nick, isGroup, nicks):
-        nick = str(nick)
-        isGroup = bool(isGroup)
-        nicks = list(nicks)
+    @pyqtSlot(str)
+    def newClientSlot(self, remote_id):
+        nick = self.client.getClientNick(remote_id)
 
-        # Show a system notifcation of the new client if not the current window
         if not self.isActiveWindow():
-            if isGroup:
-                qtUtils.showDesktopNotification(self.systemTrayIcon, "Group chat request from %s" % nick, '')
-            else:
-                qtUtils.showDesktopNotification(self.systemTrayIcon, "Chat request from %s" % nick, '')
+            qtUtils.showDesktopNotification(self.tray_icon, "Chat request from %s" % nick, '')
 
-        # Show the accept dialog
         accept = QAcceptDialog.getAnswer(self, nick)
-
         if not accept:
-            self.connectionManager.newClientRejected(nick)
+            self.client.newClientRejected(remote_id)
             return
 
-        # If nick already has a tab, reuse it
-        if self.isNickInTabs(nick) and isGroup is False:
+        if self.isNickInTabs(nick):
             self.getTabByNick(nick)[0].enable()
         else:
-            if isGroup:
-                self.addNewGroupTab(nick, True)
-            else:
-                self.addNewTab(nick)
+            self.addNewTab(nick)
 
-        self.connectionManager.newClientAccepted(nick, isGroup, nicks)
+        self.client.newClientAccepted(remote_id)
 
     def addNewTab(self, nick=None):
-        newTab = QChatTab(self, nick)
-        self.chatTabs.addTab(newTab, nick if nick is not None else "New Chat")
-        self.chatTabs.setCurrentWidget(newTab)
-        newTab.setFocus()
-
-    def addNewGroupTab(self, nick=None, justAccepted=False):
-        newTab = QChatTab(self, nick=nick, justAccepted=justAccepted, isGroup=True)
-        self.chatTabs.addTab(newTab, "Group chat")
-        self.chatTabs.setCurrentWidget(newTab)
-        newTab.setFocus()
-
-    def clientReady(self, nick, isGroup=False):
-        # Use a signal to call the client ready slot on the UI thread since
-        # this function is called from a background thread
-        self.clientReadySignal.emit(nick, isGroup)
-
-    @pyqtSlot(str, bool)
-    def clientReadySlot(self, nick, isGroup):
-        nick = str(nick)
-        if isGroup is False:
-            tab, tabIndex = self.getTabByNick(nick)
-            self.chatTabs.setTabText(tabIndex, nick)
-            tab.showNowChattingMessage()
-
-            # Set the window title if the tab is the selected tab
-            if tabIndex == self.chatTabs.currentIndex():
-                self.setWindowTitle(nick)
+        new_tab = QChatTab(self, nick)
+        if nick is None:
+            self.chat_tabs.addTab(new_tab, "New Chat")
         else:
-            if not self.getTabByText("Group chat"):
-                self.addNewGroupTab(nick)
-            tab, tabIndex = self.getTabByText("Group chat")
-            self.chatTabs.setTabText(tabIndex, 'Group chat')
-            tab.showNowChattingMessage()
+            self.chat_tabs.addTab(new_tab, nick)
+        self.chat_tabs.setCurrentWidget(new_tab)
+        new_tab.setFocus()
 
-    def smpRequest(self, type, nick, question='', errno=0):
-        self.smpRequestSignal.emit(type, nick, question, errno)
+    def clientReady(self, remote_id):
+        self.client_ready_signal.emit(remote_id)
+
+    @pyqtSlot(str)
+    def clientReadySlot(self, remote_id):
+        nick = self.client.getClientNick(remote_id)
+
+        tab, tab_index = self.getTabByNick(nick)
+        self.chat_tabs.setTabText(tab_index, nick)
+        tab.showNowChattingMessage()
+
+        if tab_index == self.chat_tabs.currentIndex():
+            self.setWindowTitle(nick)
+
+    def smpRequest(self, callback_type, client_id, question='', errno=0):
+        self.smp_request_signal.emit(callback_type, client_id, question, errno)
 
     @pyqtSlot(int, str, str, int)
-    def smpRequestSlot(self, type, nick, question='', errno=0):
-        if type == constants.SMP_CALLBACK_REQUEST:
-            answer, clickedButton = QSMPRespondDialog.getAnswer(nick, question)
-
-            if clickedButton == constants.BUTTON_OKAY:
-                self.connectionManager.respondSMP(str(nick), str(answer))
-        elif type == constants.SMP_CALLBACK_COMPLETE:
+    def smpRequestSlot(self, callback_type, client_id, question='', errno=0):
+        nick = self.client.getClientNick(client_id)
+        if callback_type == SMP_CALLBACK_REQUEST:
+            answer, clicked = QSMPRespondDialog.getAnswer(nick, question)
+            if clicked == BUTTON_OKAY:
+                self.client.respondSmp(client_id, str(answer))
+        elif callback_type == SMP_CALLBACK_COMPLETE:
             QMessageBox.information(self, "%s Authenticated" % nick,
                 "Your chat session with %s has been succesfully authenticated. The conversation is verfied as secure." % nick)
-        elif type == constants.SMP_CALLBACK_ERROR:
-            if errno == errors.ERR_SMP_CHECK_FAILED:
-                QMessageBox.warning(self, errors.TITLE_PROTOCOL_ERROR, errors.PROTOCOL_ERROR % (nick))
-            elif errno == errors.ERR_SMP_MATCH_FAILED:
-                QMessageBox.critical(self, errors.TITLE_SMP_MATCH_FAILED, errors.SMP_MATCH_FAILED)
+        elif callback_type == SMP_CALLBACK_ERROR:
+            if errno == ERR_SMP_CHECK_FAILED:
+                QMessageBox.warning(self, TITLE_PROTOCOL_ERROR, PROTOCOL_ERROR % (nick))
+            elif errno == ERR_SMP_MATCH_FAILED:
+                QMessageBox.critical(self, TITLE_SMP_MATCH_FAILED, SMP_MATCH_FAILED)
 
-    def handleError(self, nick, errno):
-        self.handleErrorSignal.emit(nick, errno)
+    def handleError(self, client_id, errno):
+        self.handle_error_signal.emit(client_id, errno)
 
     @pyqtSlot(str, int)
-    def handleErrorSlot(self, nick, errno):
-        # If no nick was given, disable all tabs
-        nick = str(nick)
-        if nick == '':
+    def handleErrorSlot(self, client_id, errno):
+        if client_id == SERVER_ROUTE:
+            # If the message comes from the server, disable all tabs
+            nick = ''
             self.__disableAllTabs()
         else:
-            try: # Let's try to get the tab by the nick, assuming it's not a group chat:
-                tab = self.getTabByNick(nick)[0]
+            nick = self.client.getClientNick(client_id)
+            try:
+                tab, tab_index = self.getTabByNick(nick)
                 tab.resetOrDisable()
-            except: # Oh, then it's obviously a group chat:
-                tab = self.getTabByText("Group chat") # Hack
-                if hasattr(tab, 'resetOrDisable'): # Another hack...
+            except:
+                tab = self.getTabByText("New Chat")
+                if hasattr(tab, 'resetOrDisable'):
                     tab.resetOrDisable()
 
-        if errno == errors.ERR_CONNECTION_ENDED:
-            QMessageBox.warning(self, errors.TITLE_CONNECTION_ENDED, errors.CONNECTION_ENDED % (nick))
-        elif errno == errors.ERR_NICK_NOT_FOUND:
-            QMessageBox.information(self, errors.TITLE_NICK_NOT_FOUND, errors.NICK_NOT_FOUND % (nick))
+        if errno == ERR_CONN_ENDED:
+            self.client.destroySession(client_id)
+            QMessageBox.warning(self, TITLE_CONNECTION_ENDED, CONNECTION_ENDED % (nick))
+        elif errno == ERR_NICK_NOT_FOUND:
+            QMessageBox.information(self, TITLE_NICK_NOT_FOUND, NICK_NOT_FOUND % (nick))
             if hasattr(tab, 'nick'):
                 tab.nick = None
-        elif errno == errors.ERR_CONNECTION_REJECTED:
-            QMessageBox.warning(self, errors.TITLE_CONNECTION_REJECTED, errors.CONNECTION_REJECTED % (nick))
+        elif errno == ERR_CONN_REJECTED:
+            QMessageBox.warning(self, TITLE_CONNECTION_REJECTED, CONNECTION_REJECTED % (nick))
             if hasattr(tab, 'nick'):
                 tab.nick = None
-        elif errno == errors.ERR_BAD_HANDSHAKE:
-            QMessageBox.warning(self, errors.TITLE_PROTOCOL_ERROR, errors.PROTOCOL_ERROR % (nick))
-        elif errno == errors.ERR_CLIENT_EXISTS:
-            QMessageBox.information(self, errors.TITLE_CLIENT_EXISTS, errors.CLIENT_EXISTS % (nick))
-        elif errno == errors.ERR_SELF_CONNECT:
-            QMessageBox.warning(self, errors.TITLE_SELF_CONNECT, errors.SELF_CONNECT)
-        elif errno == errors.ERR_SERVER_SHUTDOWN:
-            QMessageBox.critical(self, errors.TITLE_SERVER_SHUTDOWN, errors.SERVER_SHUTDOWN)
-        elif errno == errors.ERR_ALREADY_CONNECTED:
-            QMessageBox.information(self, errors.TITLE_ALREADY_CONNECTED, errors.ALREADY_CONNECTED % (nick))
-        elif errno == errors.ERR_INVALID_COMMAND:
-            QMessageBox.warning(self, errors.TITLE_INVALID_COMMAND, errors.INVALID_COMMAND % (nick))
-        elif errno == errors.ERR_NETWORK_ERROR:
-            QMessageBox.critical(self, errors.TITLE_NETWORK_ERROR, errors.NETWORK_ERROR)
-        elif errno == errors.ERR_BAD_HMAC:
-            QMessageBox.critical(self, errors.TITLE_BAD_HMAC, errors.BAD_HMAC)
-        elif errno == errors.ERR_BAD_DECRYPT:
-            QMessageBox.warning(self, errors.TITLE_BAD_DECRYPT, errors.BAD_DECRYPT)
-        elif errno == errors.ERR_KICKED:
-            QMessageBox.critical(self, errors.TITLE_KICKED, errors.KICKED)
-        elif errno == errors.ERR_NICK_IN_USE:
-            QMessageBox.warning(self, errors.TITLE_NICK_IN_USE, errors.NICK_IN_USE)
+        elif errno == ERR_BAD_HANDSHAKE:
+            QMessageBox.warning(self, TITLE_PROTOCOL_ERROR, PROTOCOL_ERROR % (nick))
+        elif errno == ERR_CLIENT_EXISTS:
+            QMessageBox.information(self, TITLE_CLIENT_EXISTS, CLIENT_EXISTS % (nick))
+        elif errno == ERR_SELF_CONNECT:
+            QMessageBox.warning(self, TITLE_SELF_CONNECT, SELF_CONNECT)
+        elif errno == ERR_SERVER_SHUTDOWN:
+            QMessageBox.critical(self, TITLE_SERVER_SHUTDOWN, SERVER_SHUTDOWN)
+        elif errno == ERR_ALREADY_CONNECTED:
+            QMessageBox.information(self, TITLE_ALREADY_CONNECTED, ALREADY_CONNECTED % (nick))
+        elif errno == ERR_INVALID_COMMAND:
+            QMessageBox.warning(self, TITLE_INVALID_COMMAND, INVALID_COMMAND % (nick))
+        elif errno == ERR_NETWORK_ERROR:
+            QMessageBox.critical(self, TITLE_NETWORK_ERROR, NETWORK_ERROR)
+        elif errno == ERR_BAD_HMAC:
+            QMessageBox.critical(self, TITLE_BAD_HMAC, BAD_HMAC)
+        elif errno == ERR_BAD_DECRYPT:
+            QMessageBox.warning(self, TITLE_BAD_DECRYPT, BAD_DECRYPT)
+        elif errno == ERR_KICKED:
+            QMessageBox.critical(self, TITLE_KICKED, KICKED)
+        elif errno == ERR_NICK_IN_USE:
+            QMessageBox.warning(self, TITLE_NICK_IN_USE, NICK_IN_USE)
             self.restartCallback()
-        elif errno == errors.ERR_MESSAGE_REPLAY:
-            QMessageBox.critical(self, errors.TITLE_MESSAGE_REPLAY, errors.MESSAGE_REPLAY)
-        elif errno == errors.ERR_MESSAGE_DELETION:
-            QMessageBox.critical(self, errors.TITLE_MESSAGE_DELETION, errors.MESSAGE_DELETION)
-        elif errno == errors.ERR_PROTOCOL_VERSION_MISMATCH:
-            QMessageBox.critical(self, errors.TITLE_PROTOCOL_VERSION_MISMATCH, errors.PROTOCOL_VERSION_MISMATCH)
+        elif errno == ERR_MESSAGE_REPLAY:
+            QMessageBox.critical(self, TITLE_MESSAGE_REPLAY, MESSAGE_REPLAY)
+        elif errno == ERR_MESSAGE_DELETION:
+            QMessageBox.critical(self, TITLE_MESSAGE_DELETION, MESSAGE_DELETION)
+        elif errno == ERR_PROTOCOL_VERSION_MISMATCH:
+            QMessageBox.critical(self, TITLE_PROTOCOL_VERSION_MISMATCH, PROTOCOL_VERSION_MISMATCH)
             self.restartCallback()
         else:
-            QMessageBox.warning(self, errors.TITLE_UNKNOWN_ERROR, errors.UNKNOWN_ERROR % (nick))
+            QMessageBox.warning(self, TITLE_UNKNOWN_ERROR, UNKNOWN_ERROR % (nick))
 
     def __disableAllTabs(self):
-        for i in range(0, self.chatTabs.count()):
-            curTab = self.chatTabs.widget(i)
-            curTab.resetOrDisable()
+        for i in range(0, self.chat_tabs.count()):
+            cur_tab = self.chat_tabs.widget(i)
+            cur_tab.resetOrDisable()
 
-    def postMessage(self, command, sourceNick, payload, isGroup=False):
-        self.sendMessageToTabSignal.emit(command, sourceNick, payload, isGroup)
+    def postMessage(self, command, client_id, data):
+        self.send_message_signal.emit(command, client_id, data)
 
-    @pyqtSlot(str, str, str, bool)
-    def sendMessageToTab(self, command, sourceNick, payload, isGroup):
-        # If a typing command, update the typing status in the tab, otherwise
-        # show the message in the tab
-        if isGroup is False:
-            tab, tabIndex = self.getTabByNick(sourceNick)
+    @pyqtSlot(str, str, str)
+    def sendMessageToTab(self, command, remote_id, data):
+        nick = self.client.getClientNick(remote_id)
+        tab, tab_index = self.getTabByNick(nick)
+        if command == COMMAND_TYPING:
+            if tab_index == self.chat_tabs.currentIndex():
+                data = int(data)
+                if data == TYPING_START:
+                    self.status_bar.showMessage("%s is typing" % nick)
+                elif data == TYPING_STOP_WITHOUT_TEXT:
+                    self.status_bar.showMessage('')
+                elif data == TYPING_STOP_WITH_TEXT:
+                    self.status_bar.showMessage("%s has entered text" % nick)
+        elif command == COMMAND_SMP_0:
+            print(('got request for smp in tab %d' % (tab_index)))
         else:
-            tab, tabIndex = self.getTabByText("Group chat")
-        if command == constants.COMMAND_TYPING:
-            # Show the typing status in the status bar if the tab is the selected tab
-            if tabIndex == self.chatTabs.currentIndex():
-                payload = int(payload)
-                if payload == constants.TYPING_START:
-                    self.statusBar.showMessage("%s is typing" % sourceNick)
-                elif payload == constants.TYPING_STOP_WITHOUT_TEXT:
-                    self.statusBar.showMessage('')
-                elif payload == constants.TYPING_STOP_WITH_TEXT:
-                    self.statusBar.showMessage("%s has entered text" % sourceNick)
-        elif command == constants.COMMAND_SMP_0:
-            print(('got request for smp in tab %d' % (tabIndex)))
-        else:
-            tab.appendMessage(payload, constants.RECEIVER)
+            tab.appendMessage(data, MSG_RECEIVER)
 
-            # Update the unread message count if the message is not intended for the currently selected tab
-            if tabIndex != self.chatTabs.currentIndex():
+            if tab_index != self.chat_tabs.currentIndex():
                 tab.unreadCount += 1
-                self.chatTabs.setTabText(tabIndex, "%s (%d)" % (tab.nick, tab.unreadCount))
+                self.chat_tabs.setTabText(tab_index, "%s (%d)" % (tab.nick, tab.unread_count))
             else:
-                # Clear the typing status if the current tab
-                self.statusBar.showMessage('')
+                self.status_bar.showMessage('')
 
-            # Show a system notifcation of the new message if not the current window or tab or the
-            # scrollbar of the tab isn't at the bottom
-            chatLogScrollbar = tab.widgetStack.widget(2).chatLog.verticalScrollBar()
-            if not self.isActiveWindow() or tabIndex != self.chatTabs.currentIndex() or \
-               chatLogScrollbar.value() != chatLogScrollbar.maximum():
-                qtUtils.showDesktopNotification(self.systemTrayIcon, sourceNick, payload)
+            chat_log_scrollbar = tab.widget_stack.widget(2).chat_log.verticalScrollBar()
+            if not self.isActiveWindow() or tab_index != self.chat_tabs.currentIndex() or \
+               chat_log_scrollbar.value() != chat_log_scrollbar.maximum():
+                qtUtils.showDesktopNotification(self.tray_icon, nick, data)
 
     @pyqtSlot(int)
     def tabChanged(self, index):
-        # Reset the unread count for the tab when it's switched to
-        tab = self.chatTabs.widget(index)
+        tab = self.chat_tabs.widget(index)
 
-        # Change the window title to the nick
-        if tab is None or tab.nick is None:
+        if (tab is None) or (tab.nick is None):
             self.setWindowTitle("HingeChat")
         else:
-            if tab.isGroup:
-                self.setWindowTitle('Group chat')
-            else:
-                self.setWindowTitle(tab.nick)
+            self.setWindowTitle(tab.nick)
 
-        if tab is not None and tab.unreadCount != 0:
-            tab.unreadCount = 0
-            self.chatTabs.setTabText(index, tab.nick)
+        if (tab is not None) and (tab.unread_count != 0):
+            tab.unread_count = 0
+            self.chat_tabs.setTabText(index, tab.nick)
 
     @pyqtSlot(int)
     def closeTab(self, index):
-        tab = self.chatTabs.widget(index)
-        self.connectionManager.closeChat(tab.nick)
+        tab = self.chat_tabs.widget(index)
 
-        self.chatTabs.removeTab(index)
+        remote_id = self.client.getClientId(tab.nick)
+        if self.client.getSession(remote_id):
+            self.client.closeSession(tab.nick)
+        else:
+            pass
 
-        # Show a new tab if there are now no tabs left
-        if self.chatTabs.count() == 0:
+        self.chat_tabs.removeTab(index)
+
+        if self.chat_tabs.count() == 0:
             self.addNewTab()
 
     def getTabByText(self, tab):
-        for i in range(0, self.chatTabs.count()):
-            tabText = self.chatTabs.tabText(i)
-            if tabText == tab:
-                whichTab = i
-                curTab = self.chatTabs.widget(whichTab)
-                return (curTab, whichTab)
+        for i in range(0, self.chat_tabs.count()):
+            tab_text = self.chat_tabs.tabText(i)
+            if tab_text == tab:
+                which_tab = i
+                cur_tab = self.chat_tabs.widget(which_tab)
+                return (cur_tab, which_tab)
         return None
 
     def getTabByNick(self, nick):
-        for i in range(0, self.chatTabs.count()):
-            curTab = self.chatTabs.widget(i)
-            if curTab.nick == nick:
-                return (curTab, i)
+        for i in range(0, self.chat_tabs.count()):
+            cur_tab = self.chat_tabs.widget(i)
+            if cur_tab.nick == nick:
+                return (cur_tab, i)
         return None
 
     def isNickInTabs(self, nick):
-        for i in range(0, self.chatTabs.count()):
-            curTab = self.chatTabs.widget(i)
-            if curTab.nick == nick:
+        for i in range(0, self.chat_tabs.count()):
+            cur_tab = self.chat_tabs.widget(i)
+            if cur_tab.nick == nick:
                 return True
         return False
 
     def __setMenubar(self):
-        newChatIcon = QIcon(qtUtils.getAbsoluteImagePath('new_chat.png'))
-        exitIcon    = QIcon(qtUtils.getAbsoluteImagePath('exit.png'))
-        menuIcon    = QIcon(qtUtils.getAbsoluteImagePath('menu.png'))
+        new_chat_icon = QIcon(qtUtils.getAbsoluteImagePath('new_chat.png'))
+        exit_icon = QIcon(qtUtils.getAbsoluteImagePath('exit.png'))
+        menu_icon = QIcon(qtUtils.getAbsoluteImagePath('menu.png'))
 
-        newChatAction  = QAction(newChatIcon, '&New chat', self)
-        newGroupChatAction = QAction(newChatIcon, '&New group chat', self)
-        authChatAction = QAction(newChatIcon, '&Authenticate chat', self)
-        exitAction     = QAction(exitIcon, '&Exit', self)
+        new_chat_action = QAction(new_chat_icon, '&New chat', self)
+        auth_chat_action = QAction(new_chat_icon, '&Authenticate chat', self)
+        exit_action = QAction(exit_icon, '&Exit', self)
 
-        newChatAction.triggered.connect(lambda: self.addNewTab())
-        newGroupChatAction.triggered.connect(lambda: self.addNewGroupTab(self.connectionManager.nick))
-        authChatAction.triggered.connect(self.__showAuthDialog)
-        exitAction.triggered.connect(self.__exit)
+        new_chat_action.triggered.connect(self.addNewTab)
+        auth_chat_action.triggered.connect(self.__showAuthDialog)
+        exit_action.triggered.connect(self.__exit)
 
-        newChatAction.setShortcut('Ctrl+N')
-        exitAction.setShortcut('Ctrl+Q')
+        new_chat_action.setShortcut('Ctrl+N')
+        exit_action.setShortcut('Ctrl+Q')
 
-        optionsMenu = QMenu()
+        options_menu = QMenu()
+        options_menu.addAction(new_chat_action)
+        options_menu.addAction(auth_chat_action)
+        options_menu.addAction(exit_action)
 
-        optionsMenu.addAction(newChatAction)
-        optionsMenu.addAction(newGroupChatAction)
-        optionsMenu.addAction(authChatAction)
-        optionsMenu.addAction(exitAction)
+        options_menu_button = QToolButton()
+        new_chat_button = QToolButton()
+        exit_button = QToolButton()
 
-        optionsMenuButton = QToolButton()
-        newChatButton     = QToolButton()
-        exitButton        = QToolButton()
+        new_chat_button.clicked.connect(self.addNewTab)
+        exit_button.clicked.connect(self.__exit)
 
-        newChatButton.clicked.connect(lambda: self.addNewTab())
-        exitButton.clicked.connect(self.__exit)
+        options_menu_button.setIcon(menu_icon)
+        new_chat_button.setIcon(new_chat_icon)
+        exit_button.setIcon(exit_icon)
 
-        optionsMenuButton.setIcon(menuIcon)
-        newChatButton.setIcon(newChatIcon)
-        exitButton.setIcon(exitIcon)
-
-        optionsMenuButton.setMenu(optionsMenu)
-        optionsMenuButton.setPopupMode(QToolButton.InstantPopup)
+        options_menu_button.setMenu(options_menu)
+        options_menu_button.setPopupMode(QToolButton.InstantPopup)
 
         toolbar = QToolBar(self)
-        toolbar.addWidget(optionsMenuButton)
-        toolbar.addWidget(newChatButton)
-        toolbar.addWidget(exitButton)
+        toolbar.addWidget(options_menu_button)
+        toolbar.addWidget(new_chat_button)
+        toolbar.addWidget(exit_button)
         self.addToolBar(Qt.LeftToolBarArea, toolbar)
 
     def __showAuthDialog(self):
-        client = self.connectionManager.getClient(self.chatTabs.currentWidget().nick)
+        remote_id = self.client.getClientId(self.chat_tabs.currentWidget().nick)
+        client = self.client.getSession(remote_id)
 
         if client is None:
             QMessageBox.information(self, "Not Available", "You must be chatting with someone before you can authenticate the connection.")
             return
 
         try:
-            question, answer, clickedButton = QSMPInitiateDialog.getQuestionAndAnswer()
+            question, answer, clicked = QSMPInitiateDialog.getQuestionAndAnswer()
         except AttributeError:
             QMessageBox.information(self, "Not Available", "Encryption keys are not available until you are chatting with someone")
 
-        if clickedButton == constants.BUTTON_OKAY:
-            client.initiateSMP(str(question), str(answer))
+        if clicked == BUTTON_OKAY:
+            client.initiateSmp(str(question), str(answer))
 
     def __exit(self):
         if QMessageBox.Yes == QMessageBox.question(self, "Confirm Exit", "Are you sure you want to exit?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No):

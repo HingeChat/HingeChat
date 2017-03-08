@@ -2,14 +2,16 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QPushButton
 
+
 class QAcceptDialog(QMessageBox):
-    def __init__(self, parent, hostname):
+
+    def __init__(self, parent, nick):
         QMessageBox.__init__(self, parent)
 
         self.accepted = None
 
         self.setWindowTitle("Accept Connection?")
-        self.setText("Received connection from " + hostname)
+        self.setText("Received connection from " + nick)
         self.setIcon(QMessageBox.Question)
 
         self.acceptButton = QPushButton(QIcon.fromTheme('dialog-ok'), "Accept")

@@ -3,6 +3,7 @@ hingechat.log
 *.py[cod]
 _build
 builds
+
 src/hinge
 
 # C extensions

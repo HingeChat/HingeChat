@@ -6,13 +6,13 @@ from PyQt5.QtWidgets  import QLabel
 from PyQt5.QtGui import QMovie
 from PyQt5.QtWidgets  import QVBoxLayout
 
-from . import qtUtils
-from .qLine import QLine
-
-from src.hinge.utils import constants
+from src.hingechat.qt import qtUtils
+from src.hingechat.qt.qLine import QLine
+from src.hinge.utils import *
 
 
 class QWaitingDialog(QDialog):
+
     def __init__(self, parent, text=""):
         QDialog.__init__(self, parent)
 
