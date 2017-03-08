@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QVBoxLayout
 
 from src.hingechat.qt.qLine import QLine
 from src.hingechat.qt import qtUtils
-from src.hinge.utils import *
+from src.hinge import utils
 
 
 class QSMPRespondDialog(QDialog):
@@ -21,7 +21,7 @@ class QSMPRespondDialog(QDialog):
     def __init__(self, nick, question, parent=None):
         QDialog.__init__(self, parent)
 
-        self.clickedButton = constants.BUTTON_CANCEL
+        self.clickedButton = utils.BUTTON_CANCEL
 
         # Set the title and icon
         self.setWindowTitle("Authenticate %s" % nick)
@@ -43,8 +43,8 @@ class QSMPRespondDialog(QDialog):
                            "to authenticate your conversation.\n\n"
                            "You may wish to ask your buddy a question as well." % nick)
 
-        okayButton.clicked.connect(lambda: self.buttonClicked(constants.BUTTON_OKAY))
-        cancelButton.clicked.connect(lambda: self.buttonClicked(constants.BUTTON_CANCEL))
+        okayButton.clicked.connect(lambda: self.buttonClicked(utils.BUTTON_OKAY))
+        cancelButton.clicked.connect(lambda: self.buttonClicked(utils.BUTTON_CANCEL))
 
         helpLayout = QHBoxLayout()
         helpLayout.addStretch(1)

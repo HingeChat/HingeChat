@@ -142,8 +142,9 @@ class QChatWindow(QMainWindow):
 
     @pyqtSlot(int, str, str, int)
     def smpRequestSlot(self, callback_type, client_id, question='', errno=0):
+        nick = self.client.getClientNick(client_id)
         if callback_type == SMP_CALLBACK_REQUEST:
-            answer, clicked = QSMPRespondDialog.getAnswer(client_id, question)
+            answer, clicked = QSMPRespondDialog.getAnswer(nick, question)
             if clicked == BUTTON_OKAY:
                 self.client.respondSmp(client_id, str(answer))
         elif callback_type == SMP_CALLBACK_COMPLETE:
@@ -341,7 +342,8 @@ class QChatWindow(QMainWindow):
         self.addToolBar(Qt.LeftToolBarArea, toolbar)
 
     def __showAuthDialog(self):
-        client = self.client.getClient(self.chat_tabs.currentWidget().nick)
+        remote_id = self.client.getClientId(self.chat_tabs.currentWidget().nick)
+        client = self.client.getSession(remote_id)
 
         if client is None:
             QMessageBox.information(self, "Not Available", "You must be chatting with someone before you can authenticate the connection.")
@@ -353,7 +355,7 @@ class QChatWindow(QMainWindow):
             QMessageBox.information(self, "Not Available", "Encryption keys are not available until you are chatting with someone")
 
         if clicked == BUTTON_OKAY:
-            client.initiateSMP(str(question), str(answer))
+            client.initiateSmp(str(question), str(answer))
 
     def __exit(self):
         if QMessageBox.Yes == QMessageBox.question(self, "Confirm Exit", "Are you sure you want to exit?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No):

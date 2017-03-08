@@ -18,13 +18,13 @@ from src.hinge.utils import *
 
 
 class QChatWidget(QWidget):
-    
+
     def __init__(self, chat_window, nick, parent=None):
         QWidget.__init__(self, parent)
 
         self.chat_window = chat_window
         self.nick = nick
-        
+
         self.disabled = False
         self.cleared = False
 
@@ -32,7 +32,7 @@ class QChatWidget(QWidget):
 
         self.chatLog = QTextBrowser()
         self.chatLog.setOpenExternalLinks(True)
-        
+
         self.chatInput = QTextEdit()
         self.chatInput.textChanged.connect(self.chatInputTextChanged)
 
@@ -139,8 +139,8 @@ class QChatWidget(QWidget):
         # Validate the given nick
         nickStatus = utils.isValidNick(nick)
         if nickStatus == errors.VALID_NICK:
-            nicks = [nick, self.otherNick]
-            self.connectionManager.openGroupChat(self.nick, nicks)
+            # TODO: Group chats
+            pass
         elif nickStatus == errors.INVALID_NICK_CONTENT:
             QMessageBox.warning(self, errors.TITLE_INVALID_NICK, errors.INVALID_NICK_CONTENT)
         elif nickStatus == errors.INVALID_NICK_LENGTH:
